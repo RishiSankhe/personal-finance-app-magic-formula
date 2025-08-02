@@ -168,16 +168,19 @@ export const MagicFormulaScreener = ({ onBack }: MagicFormulaScreenerProps) => {
     <div className="min-h-screen bg-background">
       <Navigation />
       <div className="bg-gradient-to-br from-background via-background to-background/80 p-6 pt-24">
-      <div className="max-w-7xl mx-auto space-y-8">
-        {/* Header with Back Button */}
-        <div className="flex items-center justify-between">
+        <div className="max-w-7xl mx-auto space-y-8">
+          {/* Back Button at Top */}
           {onBack && (
-            <Button variant="outline" onClick={onBack} className="gap-2">
-              <ArrowLeft className="w-4 h-4" />
-              Back to Home
-            </Button>
+            <div className="flex justify-start">
+              <Button variant="outline" onClick={onBack} className="gap-2">
+                <ArrowLeft className="w-4 h-4" />
+                Back to Home
+              </Button>
+            </div>
           )}
-          <div className="text-center flex-1">
+          
+          {/* Header */}
+          <div className="text-center">
             <h1 className="text-5xl md:text-6xl font-normal tracking-tight">
               Magic Formula{" "}
               <span className="text-gradient font-medium">Stock Screener</span>
@@ -186,8 +189,6 @@ export const MagicFormulaScreener = ({ onBack }: MagicFormulaScreenerProps) => {
               Discover high-quality, undervalued stocks using Joel Greenblatt's proven Magic Formula strategy
             </p>
           </div>
-          <div className="w-24"></div> {/* Spacer for centering */}
-        </div>
 
         {/* Controls */}
         <Card className="border-white/10 bg-background/50 backdrop-blur-sm">

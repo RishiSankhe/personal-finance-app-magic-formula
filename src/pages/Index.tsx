@@ -46,7 +46,7 @@ const Index = () => {
                 className="text-foreground"
               />
               <br />
-              <span className="text-gradient font-medium">with Magic Formula</span>
+              <span className="text-gradient font-medium">with the Magic Formula</span>
             </h1>
             
             <motion.p
