@@ -39,7 +39,7 @@ const LogoCarousel = () => {
           <motion.img
             key={`logo-${index}`}
             src={logo}
-            alt={`Partner logo ${index + 1}`}
+            alt={`Financial partner logo ${index + 1}`}
             className="h-8 object-contain"
             initial={{ opacity: 0.5 }}
             whileHover={{ 

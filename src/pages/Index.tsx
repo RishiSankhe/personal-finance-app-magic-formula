@@ -1,7 +1,6 @@
 import Navigation from "@/components/Navigation";
 import { TextGenerateEffect } from "@/components/ui/text-generate-effect";
 import { FeaturesSection } from "@/components/features/FeaturesSection";
-import { PricingSection } from "@/components/pricing/PricingSection";
 import TestimonialsSection from "@/components/TestimonialsSection";
 import LogoCarousel from "@/components/LogoCarousel";
 import Footer from "@/components/Footer";
@@ -122,8 +121,8 @@ const Index = () => {
         >
           <div className="glass rounded-xl overflow-hidden">
             <img
-              src="/lovable-uploads/c32c6788-5e4a-4fee-afee-604b03113c7f.png"
-              alt="Magic Formula Dashboard"
+              src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80"
+              alt="Magic Formula Investment Analytics Dashboard"
               className="w-full h-auto"
             />
           </div>
@@ -133,18 +132,9 @@ const Index = () => {
       <LogoCarousel />
       <FeaturesSection />
       <TestimonialsSection />
-      <PricingSection />
 
       {/* CTA Section */}
       <section className="container px-4 py-20 relative">
-        <div 
-          className="absolute inset-0 opacity-40"
-          style={{
-            backgroundImage: 'url("/lovable-uploads/21f3edfb-62b5-4e35-9d03-7339d803b980.png")',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-          }}
-        />
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

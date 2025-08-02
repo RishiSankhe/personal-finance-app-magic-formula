@@ -7,39 +7,39 @@ import { Card } from "./ui/card";
 const testimonials = [
   {
     name: "Michael Chen",
-    role: "Professional Trader",
+    role: "Value Investor",
     image: "https://avatars.githubusercontent.com/u/1234567?v=4",
-    content: "The real-time market data and advanced trading features have significantly improved my trading performance. The platform's security measures give me peace of mind."
+    content: "The Magic Formula screener has completely transformed my investment approach. Finding undervalued, high-quality stocks has never been easier."
   },
   {
     name: "Sarah Johnson",
-    role: "Crypto Fund Manager",
+    role: "Portfolio Manager",
     image: "https://avatars.githubusercontent.com/u/2345678?v=4",
-    content: "CryptoTrade's institutional-grade tools have transformed our trading strategy. The API integration and automated features have saved us countless hours."
+    content: "Joel Greenblatt's methodology implemented so elegantly. The real-time financial data and screening tools have significantly improved our fund performance."
   },
   {
     name: "David Wilson",
-    role: "Early Crypto Investor",
+    role: "Financial Advisor",
     image: "https://avatars.githubusercontent.com/u/3456789?v=4",
-    content: "The customer support is exceptional, and the platform's intuitive design made getting started with crypto trading seamless. A game-changer for both beginners and pros."
+    content: "The systematic approach to value investing this platform provides has helped my clients achieve consistent above-market returns. Absolutely essential tool."
   },
   {
     name: "Emily Zhang",
-    role: "DeFi Developer",
+    role: "Quantitative Analyst",
     image: "https://avatars.githubusercontent.com/u/4567890?v=4",
-    content: "We've seen remarkable improvements in our trading efficiency since switching to CryptoTrade. The smart order routing and liquidity aggregation are particularly impressive."
+    content: "The combination of earnings yield and return on capital calculations is perfectly executed. The backtesting results speak for themselves."
   },
   {
     name: "James Rodriguez",
-    role: "Crypto Security Expert",
+    role: "Investment Strategist",
     image: "https://avatars.githubusercontent.com/u/5678901?v=4",
-    content: "The security features are robust and the regular updates keep us ahead of emerging threats. It's exactly what the crypto industry needed."
+    content: "Magic Formula investing made simple and accessible. The sector-based screening and portfolio allocation features are incredibly powerful."
   },
   {
     name: "Lisa Thompson",
-    role: "Portfolio Manager",
+    role: "Pension Fund Manager",
     image: "https://avatars.githubusercontent.com/u/6789012?v=4",
-    content: "The platform's ability to handle complex trading strategies while maintaining simplicity in its interface is remarkable. It's been invaluable for our portfolio management."
+    content: "The disciplined, systematic approach to stock selection has delivered exceptional results for our pension fund. A game-changer for institutional investing."
   }
 ];
 
@@ -54,9 +54,9 @@ const TestimonialsSection = () => {
           transition={{ duration: 0.8, ease: "easeOut" }}
           className="text-center mb-16"
         >
-          <h2 className="text-5xl font-normal mb-4">Trusted by Traders</h2>
+          <h2 className="text-5xl font-normal mb-4">Trusted by Investors</h2>
           <p className="text-muted-foreground text-lg">
-            Join thousands of satisfied traders on CryptoTrade
+            Join thousands of successful value investors using Magic Formula
           </p>
         </motion.div>
 
