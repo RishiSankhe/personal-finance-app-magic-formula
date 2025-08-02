@@ -40,13 +40,13 @@ const Index = () => {
             className="space-y-8"
           >
 
-            <h1 className="text-6xl md:text-8xl lg:text-9xl font-normal tracking-tight leading-none">
+            <h1 className="text-5xl md:text-7xl lg:text-8xl font-normal tracking-tight leading-none">
               <TextGenerateEffect
-                words="Beat the Market with"
+                words="Beat the Market"
                 className="text-foreground"
               />
               <br />
-              <span className="text-gradient font-medium">Magic Formula</span>
+              <span className="text-gradient font-medium">with Magic Formula</span>
             </h1>
             
             <motion.p
