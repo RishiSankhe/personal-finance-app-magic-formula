@@ -1,7 +1,7 @@
 import Navigation from "@/components/Navigation";
 import { TextGenerateEffect } from "@/components/ui/text-generate-effect";
 import { FeaturesSection } from "@/components/features/FeaturesSection";
-import TestimonialsSection from "@/components/TestimonialsSection";
+
 import Footer from "@/components/Footer";
 import { MagicFormulaScreener } from "@/components/magic-formula/MagicFormulaScreener";
 import { Button } from "@/components/ui/button";
@@ -37,17 +37,6 @@ const Index = () => {
             transition={{ duration: 0.5 }}
             className="space-y-8"
           >
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.2 }}
-              className="inline-block mb-4 px-4 py-1.5 rounded-full glass"
-            >
-              <span className="text-sm font-medium">
-                <Calculator className="w-4 h-4 inline-block mr-2" />
-                Value investing made simple
-              </span>
-            </motion.div>
 
             <h1 className="text-6xl md:text-8xl lg:text-9xl font-normal tracking-tight leading-none">
               <TextGenerateEffect
@@ -81,7 +70,17 @@ const Index = () => {
                 Start Screening Stocks
                 <ArrowRight className="ml-2 w-4 h-4 transition-transform group-hover:translate-x-1" />
               </Button>
-              <Button size="lg" variant="outline" className="glass">
+              <Button 
+                size="lg" 
+                variant="outline" 
+                className="glass"
+                onClick={() => {
+                  const featuresSection = document.getElementById('features');
+                  if (featuresSection) {
+                    featuresSection.scrollIntoView({ behavior: 'smooth' });
+                  }
+                }}
+              >
                 View Methodology
               </Button>
             </motion.div>
@@ -120,7 +119,6 @@ const Index = () => {
       </section>
 
       <FeaturesSection />
-      <TestimonialsSection />
 
       {/* CTA Section */}
       <section className="container px-4 py-20 relative">
