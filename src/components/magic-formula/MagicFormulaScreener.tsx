@@ -4,8 +4,10 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Target, TrendingUp } from "lucide-react";
+import { ArrowLeft, Target, TrendingUp, Briefcase } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import Navigation from "@/components/Navigation";
+import { useNavigate } from "react-router-dom";
 
 interface Stock {
   symbol: string;
@@ -33,6 +35,7 @@ export const MagicFormulaScreener = ({ onBack }: MagicFormulaScreenerProps) => {
   const [stocks, setStocks] = useState<Stock[]>([]);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const sectors = [
     "All Sectors",
@@ -95,16 +98,44 @@ export const MagicFormulaScreener = ({ onBack }: MagicFormulaScreenerProps) => {
         { symbol: "AAPL", name: "Apple Inc.", price: 192.53, earningsYield: 0.058, returnOnCapital: 0.284, magicFormulaRank: 1, sector: "Technology", marketCap: 3000000000000 },
         { symbol: "MSFT", name: "Microsoft Corp.", price: 412.64, earningsYield: 0.032, returnOnCapital: 0.185, magicFormulaRank: 2, sector: "Technology", marketCap: 2800000000000 },
         { symbol: "GOOGL", name: "Alphabet Inc.", price: 166.41, earningsYield: 0.041, returnOnCapital: 0.142, magicFormulaRank: 3, sector: "Technology", marketCap: 2100000000000 },
+        { symbol: "AMZN", name: "Amazon.com Inc.", price: 155.89, earningsYield: 0.028, returnOnCapital: 0.125, magicFormulaRank: 4, sector: "Technology", marketCap: 1600000000000 },
+        { symbol: "META", name: "Meta Platforms Inc.", price: 485.32, earningsYield: 0.065, returnOnCapital: 0.198, magicFormulaRank: 5, sector: "Technology", marketCap: 1200000000000 },
       ],
       "Healthcare": [
         { symbol: "JNJ", name: "Johnson & Johnson", price: 158.42, earningsYield: 0.045, returnOnCapital: 0.128, magicFormulaRank: 1, sector: "Healthcare", marketCap: 425000000000 },
         { symbol: "PFE", name: "Pfizer Inc.", price: 28.95, earningsYield: 0.089, returnOnCapital: 0.095, magicFormulaRank: 2, sector: "Healthcare", marketCap: 163000000000 },
+        { symbol: "UNH", name: "UnitedHealth Group Inc.", price: 542.78, earningsYield: 0.042, returnOnCapital: 0.156, magicFormulaRank: 3, sector: "Healthcare", marketCap: 515000000000 },
+        { symbol: "ABBV", name: "AbbVie Inc.", price: 175.63, earningsYield: 0.078, returnOnCapital: 0.134, magicFormulaRank: 4, sector: "Healthcare", marketCap: 310000000000 },
+        { symbol: "LLY", name: "Eli Lilly and Company", price: 789.45, earningsYield: 0.038, returnOnCapital: 0.167, magicFormulaRank: 5, sector: "Healthcare", marketCap: 755000000000 },
       ],
       "Energy": [
         { symbol: "XOM", name: "Exxon Mobil Corp.", price: 108.45, earningsYield: 0.072, returnOnCapital: 0.156, magicFormulaRank: 1, sector: "Energy", marketCap: 425000000000 },
         { symbol: "CVX", name: "Chevron Corp.", price: 159.32, earningsYield: 0.065, returnOnCapital: 0.142, magicFormulaRank: 2, sector: "Energy", marketCap: 315000000000 },
+        { symbol: "COP", name: "ConocoPhillips", price: 112.87, earningsYield: 0.083, returnOnCapital: 0.198, magicFormulaRank: 3, sector: "Energy", marketCap: 145000000000 },
+        { symbol: "SLB", name: "Schlumberger Ltd.", price: 49.23, earningsYield: 0.067, returnOnCapital: 0.134, magicFormulaRank: 4, sector: "Energy", marketCap: 69000000000 },
+        { symbol: "EOG", name: "EOG Resources Inc.", price: 125.67, earningsYield: 0.074, returnOnCapital: 0.178, magicFormulaRank: 5, sector: "Energy", marketCap: 74000000000 },
+      ],
+      "Financial Services": [
+        { symbol: "JPM", name: "JPMorgan Chase & Co.", price: 185.43, earningsYield: 0.087, returnOnCapital: 0.156, magicFormulaRank: 1, sector: "Financial Services", marketCap: 545000000000 },
+        { symbol: "BAC", name: "Bank of America Corp.", price: 32.45, earningsYield: 0.092, returnOnCapital: 0.134, magicFormulaRank: 2, sector: "Financial Services", marketCap: 265000000000 },
+        { symbol: "WFC", name: "Wells Fargo & Company", price: 45.78, earningsYield: 0.078, returnOnCapital: 0.123, magicFormulaRank: 3, sector: "Financial Services", marketCap: 174000000000 },
+        { symbol: "GS", name: "Goldman Sachs Group Inc.", price: 398.65, earningsYield: 0.065, returnOnCapital: 0.145, magicFormulaRank: 4, sector: "Financial Services", marketCap: 134000000000 },
+        { symbol: "MS", name: "Morgan Stanley", price: 89.34, earningsYield: 0.071, returnOnCapital: 0.132, magicFormulaRank: 5, sector: "Financial Services", marketCap: 148000000000 },
+      ],
+      "Consumer Discretionary": [
+        { symbol: "HD", name: "Home Depot Inc.", price: 345.67, earningsYield: 0.052, returnOnCapital: 0.189, magicFormulaRank: 1, sector: "Consumer Discretionary", marketCap: 365000000000 },
+        { symbol: "MCD", name: "McDonald's Corp.", price: 289.45, earningsYield: 0.048, returnOnCapital: 0.167, magicFormulaRank: 2, sector: "Consumer Discretionary", marketCap: 215000000000 },
+        { symbol: "NKE", name: "Nike Inc.", price: 98.76, earningsYield: 0.043, returnOnCapital: 0.134, magicFormulaRank: 3, sector: "Consumer Discretionary", marketCap: 156000000000 },
+        { symbol: "SBUX", name: "Starbucks Corp.", price: 97.23, earningsYield: 0.039, returnOnCapital: 0.123, magicFormulaRank: 4, sector: "Consumer Discretionary", marketCap: 112000000000 },
+        { symbol: "TGT", name: "Target Corp.", price: 148.92, earningsYield: 0.056, returnOnCapital: 0.145, magicFormulaRank: 5, sector: "Consumer Discretionary", marketCap: 68000000000 },
       ]
     };
+
+    if (sector === "All Sectors") {
+      // Return a mix from all sectors, taking top stock from each
+      const allStocks = Object.values(mockData).flat();
+      return allStocks.filter((_, index) => index % 5 === 0).slice(0, 5); // Take first from each sector
+    }
 
     return mockData[sector] || mockData["Technology"];
   };
@@ -138,7 +169,9 @@ export const MagicFormulaScreener = ({ onBack }: MagicFormulaScreenerProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-background/80 p-6 pt-24">
+    <div className="min-h-screen bg-background">
+      <Navigation />
+      <div className="bg-gradient-to-br from-background via-background to-background/80 p-6 pt-24">
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Header with Back Button */}
         <div className="flex items-center justify-between">
@@ -185,14 +218,23 @@ export const MagicFormulaScreener = ({ onBack }: MagicFormulaScreenerProps) => {
               </Select>
             </div>
 
-            <div className="flex items-end">
+            <div className="flex items-end gap-4">
               <Button 
                 onClick={runScreener}
                 disabled={loading}
-                className="button-gradient w-full"
+                className="button-gradient flex-1"
                 size="lg"
               >
                 {loading ? "Screening..." : "Run Screen"}
+              </Button>
+              <Button 
+                onClick={() => navigate('/portfolio')}
+                variant="outline"
+                size="lg"
+                className="gap-2"
+              >
+                <Briefcase className="w-4 h-4" />
+                View Portfolio
               </Button>
             </div>
           </CardContent>
@@ -209,7 +251,7 @@ export const MagicFormulaScreener = ({ onBack }: MagicFormulaScreenerProps) => {
             </div>
 
             <div className="grid gap-6">
-              {stocks.slice(0, 10).map((stock, index) => (
+              {stocks.slice(0, 5).map((stock, index) => (
                 <Card key={stock.symbol} className="border-white/10 bg-background/50 backdrop-blur-sm hover:border-primary/20 transition-colors">
                   <CardContent className="p-6">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -323,6 +365,7 @@ export const MagicFormulaScreener = ({ onBack }: MagicFormulaScreenerProps) => {
             </Card>
           </div>
         )}
+      </div>
       </div>
     </div>
   );
