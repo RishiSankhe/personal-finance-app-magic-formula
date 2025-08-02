@@ -82,22 +82,30 @@ serve(async (req) => {
 
     const stocks: StockData[] = [];
     
-    // Rate limiting: Process stocks with delays to respect AlphaVantage limits
-    for (let i = 0; i < Math.min(stocksToAnalyze.length, limit); i++) {
+    // Process fewer stocks with shorter delays for better user experience
+    const stocksToProcess = Math.min(stocksToAnalyze.length, 3); // Process only 3 stocks
+    
+    for (let i = 0; i < stocksToProcess; i++) {
       const symbol = stocksToAnalyze[i];
       
       try {
+        console.log(`Fetching data for ${symbol}...`);
+        
         // Fetch company overview
         const overviewResponse = await fetch(
           `https://www.alphavantage.co/query?function=OVERVIEW&symbol=${symbol}&apikey=${ALPHA_VANTAGE_API_KEY}`
         );
         const overviewData: AlphaVantageCompanyOverview = await overviewResponse.json();
+        
+        console.log(`Overview data for ${symbol}:`, overviewData);
 
         // Fetch current price
         const quoteResponse = await fetch(
           `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${symbol}&apikey=${ALPHA_VANTAGE_API_KEY}`
         );
         const quoteData: AlphaVantageQuote = await quoteResponse.json();
+        
+        console.log(`Quote data for ${symbol}:`, quoteData);
 
         if (overviewData.Symbol && quoteData["Global Quote"]) {
           const price = parseFloat(quoteData["Global Quote"]["05. price"]);
@@ -112,6 +120,8 @@ serve(async (req) => {
           // Calculate Magic Formula metrics
           const earningsYield = peRatio > 0 ? 1 / peRatio : 0;
           const returnOnCapital = roe / 100; // Convert percentage to decimal
+
+          console.log(`Calculated metrics for ${symbol}: EY=${earningsYield}, ROC=${returnOnCapital}`);
 
           if (price > 0 && earningsYield > 0 && returnOnCapital > 0) {
             stocks.push({
@@ -130,12 +140,17 @@ serve(async (req) => {
               grossProfit: grossProfit || 0,
               debtToEquity: 0 // Will add this calculation if needed
             });
+            console.log(`Added ${symbol} to results`);
+          } else {
+            console.log(`Skipped ${symbol} due to invalid metrics`);
           }
+        } else {
+          console.log(`No valid data found for ${symbol}`);
         }
 
-        // Add delay to respect rate limits (5 requests per minute for free tier)
-        if (i < stocksToAnalyze.length - 1) {
-          await new Promise(resolve => setTimeout(resolve, 12000)); // 12 second delay
+        // Shorter delay to improve user experience (5 seconds instead of 12)
+        if (i < stocksToProcess - 1) {
+          await new Promise(resolve => setTimeout(resolve, 5000));
         }
 
       } catch (error) {
