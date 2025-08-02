@@ -8,6 +8,7 @@ import { ArrowLeft, Target, TrendingUp, Briefcase } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Navigation from "@/components/Navigation";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Stock {
   symbol: string;
@@ -55,22 +56,17 @@ export const MagicFormulaScreener = ({ onBack }: MagicFormulaScreenerProps) => {
   const runScreener = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/functions/v1/magic-formula-screener', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      const { data, error } = await supabase.functions.invoke('magic-formula-screener', {
+        body: {
           sector: selectedSector,
-          limit: 10
-        }),
+          limit: 5
+        }
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch stock data');
+      if (error) {
+        throw error;
       }
 
-      const data = await response.json();
       setStocks(data.stocks || []);
       
       toast({
