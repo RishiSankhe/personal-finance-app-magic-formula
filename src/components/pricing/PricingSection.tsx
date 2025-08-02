@@ -38,7 +38,7 @@ const PricingTier = ({
         ))}
       </ul>
       <Button className="button-gradient w-full">
-        Start Trading
+        Start Investing
       </Button>
     </div>
   </CardSpotlight>
@@ -55,7 +55,7 @@ export const PricingSection = () => {
           className="text-5xl md:text-6xl font-normal mb-6"
         >
           Choose Your{" "}
-          <span className="text-gradient font-medium">Trading Plan</span>
+          <span className="text-gradient font-medium">Investment Plan</span>
         </motion.h2>
         <motion.p
           initial={{ opacity: 0, y: 20 }}
@@ -63,43 +63,44 @@ export const PricingSection = () => {
           transition={{ delay: 0.1, duration: 0.5 }}
           className="text-lg text-gray-400"
         >
-          Select the perfect trading plan with advanced features and competitive fees
+          Select the perfect plan for Magic Formula investing with professional tools and real-time data
         </motion.p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
         <PricingTier
-          name="Basic Trader"
+          name="Basic Investor"
           price="$0"
-          description="Perfect for beginners starting their crypto journey"
+          description="Perfect for beginners starting their value investing journey"
           features={[
-            "Basic spot trading",
-            "Market & limit orders",
-            "Basic market analysis",
+            "Basic Magic Formula screening",
+            "Top 20 stock recommendations",
+            "Sector filtering",
             "Email support"
           ]}
         />
         <PricingTier
-          name="Pro Trader"
+          name="Pro Investor"
           price="$29"
-          description="Advanced features for serious traders"
+          description="Advanced tools for serious value investors"
           features={[
-            "Advanced trading tools",
-            "Margin trading up to 10x",
-            "Advanced technical analysis",
-            "Priority support",
-            "API access"
+            "Advanced screening algorithms",
+            "Real-time financial data",
+            "Portfolio optimization tools",
+            "Risk management features",
+            "API access",
+            "Priority support"
           ]}
           isPopular
         />
         <PricingTier
           name="Institutional"
           price="Custom"
-          description="Enterprise-grade solutions for institutions"
+          description="Enterprise-grade solutions for investment firms"
           features={[
-            "Custom trading solutions",
-            "Unlimited trading volume",
-            "OTC desk access",
+            "Custom screening models",
+            "Unlimited portfolio tracking",
+            "White-label solutions",
             "Dedicated account manager",
             "Custom API integration",
             "24/7 priority support"
