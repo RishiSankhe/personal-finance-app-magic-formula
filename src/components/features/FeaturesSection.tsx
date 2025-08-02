@@ -5,7 +5,7 @@ import { features } from "@/config/features";
 
 export const FeaturesSection = () => {
   return (
-    <section className="container px-4 py-24">
+    <section id="features" className="container px-4 py-24">
       {/* Header Section */}
       <div className="max-w-2xl mb-20">
         <h2 className="text-5xl md:text-6xl font-normal mb-6 tracking-tight text-left">
