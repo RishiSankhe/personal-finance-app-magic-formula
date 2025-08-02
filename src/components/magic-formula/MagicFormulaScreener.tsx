@@ -16,6 +16,12 @@ interface Stock {
   magicFormulaRank: number;
   sector: string;
   marketCap: number;
+  peRatio?: number;
+  bookValue?: number;
+  eps?: number;
+  revenue?: number;
+  grossProfit?: number;
+  debtToEquity?: number;
 }
 
 interface MagicFormulaScreenerProps {
@@ -46,7 +52,7 @@ export const MagicFormulaScreener = ({ onBack }: MagicFormulaScreenerProps) => {
   const runScreener = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/magic-formula-screener', {
+      const response = await fetch('/functions/v1/magic-formula-screener', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -220,7 +226,7 @@ export const MagicFormulaScreener = ({ onBack }: MagicFormulaScreenerProps) => {
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-3 gap-4 text-center">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
                           <div>
                             <p className="text-2xl font-bold">{formatCurrency(stock.price)}</p>
                             <p className="text-xs text-muted-foreground">Current Price</p>
@@ -233,7 +239,38 @@ export const MagicFormulaScreener = ({ onBack }: MagicFormulaScreenerProps) => {
                             <p className="text-lg font-semibold text-green-400">{(stock.returnOnCapital * 100).toFixed(1)}%</p>
                             <p className="text-xs text-muted-foreground">Return on Capital</p>
                           </div>
+                          <div>
+                            <p className="text-lg font-semibold text-blue-400">{stock.peRatio ? stock.peRatio.toFixed(1) : 'N/A'}</p>
+                            <p className="text-xs text-muted-foreground">P/E Ratio</p>
+                          </div>
                         </div>
+                        
+                        {/* Additional Financial Metrics */}
+                        {(stock.eps || stock.revenue || stock.bookValue) && (
+                          <div className="mt-4 p-3 bg-muted/50 rounded-lg">
+                            <h5 className="text-sm font-medium mb-2">Key Financials</h5>
+                            <div className="grid grid-cols-3 gap-3 text-sm">
+                              {stock.eps && (
+                                <div className="text-center">
+                                  <p className="font-semibold">${stock.eps.toFixed(2)}</p>
+                                  <p className="text-xs text-muted-foreground">EPS</p>
+                                </div>
+                              )}
+                              {stock.bookValue && (
+                                <div className="text-center">
+                                  <p className="font-semibold">${stock.bookValue.toFixed(2)}</p>
+                                  <p className="text-xs text-muted-foreground">Book Value</p>
+                                </div>
+                              )}
+                              {stock.revenue && (
+                                <div className="text-center">
+                                  <p className="font-semibold">{formatMarketCap(stock.revenue)}</p>
+                                  <p className="text-xs text-muted-foreground">Revenue</p>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
                       </div>
 
                       {/* Investment Thesis */}

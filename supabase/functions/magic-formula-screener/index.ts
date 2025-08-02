@@ -11,6 +11,12 @@ interface StockData {
   magicFormulaRank: number;
   sector: string;
   marketCap: number;
+  peRatio: number;
+  bookValue: number;
+  eps: number;
+  revenue: number;
+  grossProfit: number;
+  debtToEquity: number;
 }
 
 interface AlphaVantageCompanyOverview {
@@ -20,6 +26,10 @@ interface AlphaVantageCompanyOverview {
   MarketCapitalization: string;
   PERatio: string;
   ReturnOnEquityTTM: string;
+  BookValue: string;
+  EPS: string;
+  RevenueTTM: string;
+  GrossProfitTTM: string;
   [key: string]: string;
 }
 
@@ -94,6 +104,10 @@ serve(async (req) => {
           const peRatio = parseFloat(overviewData.PERatio);
           const roe = parseFloat(overviewData.ReturnOnEquityTTM);
           const marketCap = parseFloat(overviewData.MarketCapitalization);
+          const bookValue = parseFloat(overviewData.BookValue || "0");
+          const eps = parseFloat(overviewData.EPS || "0");
+          const revenue = parseFloat(overviewData.RevenueTTM || "0");
+          const grossProfit = parseFloat(overviewData.GrossProfitTTM || "0");
 
           // Calculate Magic Formula metrics
           const earningsYield = peRatio > 0 ? 1 / peRatio : 0;
@@ -108,7 +122,13 @@ serve(async (req) => {
               returnOnCapital,
               magicFormulaRank: 0, // Will be calculated after sorting
               sector: overviewData.Sector || sector,
-              marketCap: marketCap || 0
+              marketCap: marketCap || 0,
+              peRatio: peRatio || 0,
+              bookValue: bookValue || 0,
+              eps: eps || 0,
+              revenue: revenue || 0,
+              grossProfit: grossProfit || 0,
+              debtToEquity: 0 // Will add this calculation if needed
             });
           }
         }
