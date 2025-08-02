@@ -8,9 +8,11 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, TrendingUp, Target, BarChart3, Calculator } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const Index = () => {
   const [showScreener, setShowScreener] = useState(false);
+  const navigate = useNavigate();
 
   if (showScreener) {
     return (
@@ -137,9 +139,9 @@ const Index = () => {
           <Button 
             size="lg" 
             className="button-gradient"
-            onClick={() => setShowScreener(true)}
+            onClick={() => navigate('/portfolio')}
           >
-            Start Screening Now
+            Build Your Portfolio
             <ArrowRight className="ml-2 w-4 h-4" />
           </Button>
         </motion.div>
