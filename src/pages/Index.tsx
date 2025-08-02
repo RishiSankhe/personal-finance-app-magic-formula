@@ -13,7 +13,12 @@ const Index = () => {
   const [showScreener, setShowScreener] = useState(false);
 
   if (showScreener) {
-    return <MagicFormulaScreener />;
+    return (
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <MagicFormulaScreener onBack={() => setShowScreener(false)} />
+      </div>
+    );
   }
 
   return (
