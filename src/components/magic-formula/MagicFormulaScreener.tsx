@@ -265,7 +265,7 @@ export const MagicFormulaScreener = ({ onBack }: MagicFormulaScreenerProps) => {
                             <p className="text-xs text-muted-foreground">Earnings Yield</p>
                           </div>
                           <div>
-                            <p className="text-lg font-semibold text-green-400">{(stock.returnOnCapital * 100).toFixed(1)}%</p>
+                            <p className="text-lg font-semibold text-primary">{(stock.returnOnCapital * 100).toFixed(1)}%</p>
                             <p className="text-xs text-muted-foreground">Return on Capital</p>
                           </div>
                           <div>
