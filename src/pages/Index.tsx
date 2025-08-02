@@ -37,17 +37,6 @@ const Index = () => {
             transition={{ duration: 0.5 }}
             className="space-y-8"
           >
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.2 }}
-              className="inline-block mb-8 px-4 py-1.5 rounded-full glass"
-            >
-              <span className="text-sm font-medium">
-                <Calculator className="w-4 h-4 inline-block mr-2" />
-                Value investing made simple
-              </span>
-            </motion.div>
 
             <h1 className="text-6xl md:text-8xl lg:text-9xl font-normal tracking-tight leading-none">
               <TextGenerateEffect
@@ -132,7 +121,7 @@ const Index = () => {
       <FeaturesSection />
 
       {/* CTA Section */}
-      <section className="container px-4 py-12 relative">
+      <section className="container px-4 py-6 relative">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
