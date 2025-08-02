@@ -218,23 +218,14 @@ export const MagicFormulaScreener = ({ onBack }: MagicFormulaScreenerProps) => {
               </Select>
             </div>
 
-            <div className="flex items-end gap-4">
+            <div className="flex items-end">
               <Button 
                 onClick={runScreener}
                 disabled={loading}
-                className="button-gradient flex-1"
+                className="button-gradient w-full"
                 size="lg"
               >
                 {loading ? "Screening..." : "Run Screen"}
-              </Button>
-              <Button 
-                onClick={() => navigate('/portfolio')}
-                variant="outline"
-                size="lg"
-                className="gap-2"
-              >
-                <Briefcase className="w-4 h-4" />
-                View Portfolio
               </Button>
             </div>
           </CardContent>

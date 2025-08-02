@@ -42,7 +42,7 @@ const Navigation = () => {
   };
 
   const navItems = [
-    { name: "Features", href: "#features", onClick: () => scrollToSection('features') },
+    { name: "Portfolio", href: "/portfolio", onClick: () => navigate('/portfolio') },
   ];
 
   return (
@@ -82,7 +82,7 @@ const Navigation = () => {
               size="sm"
               className="button-gradient"
             >
-              Start Investing
+              Start Screening
             </Button>
           </div>
 
@@ -119,7 +119,7 @@ const Navigation = () => {
                     }}
                     className="button-gradient mt-4"
                   >
-                    Start Investing
+                    Start Screening
                   </Button>
                 </div>
               </SheetContent>
