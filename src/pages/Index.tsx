@@ -2,7 +2,6 @@ import Navigation from "@/components/Navigation";
 import { TextGenerateEffect } from "@/components/ui/text-generate-effect";
 import { FeaturesSection } from "@/components/features/FeaturesSection";
 import TestimonialsSection from "@/components/TestimonialsSection";
-import LogoCarousel from "@/components/LogoCarousel";
 import Footer from "@/components/Footer";
 import { MagicFormulaScreener } from "@/components/magic-formula/MagicFormulaScreener";
 import { Button } from "@/components/ui/button";
@@ -113,23 +112,8 @@ const Index = () => {
           </motion.div>
         </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1.2 }}
-          className="absolute bottom-20 left-1/2 transform -translate-x-1/2 max-w-5xl w-full px-4"
-        >
-          <div className="glass rounded-xl overflow-hidden">
-            <img
-              src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80"
-              alt="Magic Formula Investment Analytics Dashboard"
-              className="w-full h-auto"
-            />
-          </div>
-        </motion.div>
       </section>
 
-      <LogoCarousel />
       <FeaturesSection />
       <TestimonialsSection />
 
