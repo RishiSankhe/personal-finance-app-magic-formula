@@ -2,10 +2,12 @@ import { useState, useEffect } from "react";
 import { Calculator, Menu } from "lucide-react";
 import { Button } from "./ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
+import { useNavigate } from "react-router-dom";
 
 const Navigation = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -41,7 +43,6 @@ const Navigation = () => {
 
   const navItems = [
     { name: "Features", href: "#features", onClick: () => scrollToSection('features') },
-    { name: "Testimonials", href: "#testimonials", onClick: () => scrollToSection('testimonials') },
   ];
 
   return (
@@ -77,7 +78,7 @@ const Navigation = () => {
               </a>
             ))}
             <Button 
-              onClick={() => scrollToSection('cta')}
+              onClick={() => navigate('/magic-formula')}
               size="sm"
               className="button-gradient"
             >
@@ -114,7 +115,7 @@ const Navigation = () => {
                   <Button 
                     onClick={() => {
                       setIsMobileMenuOpen(false);
-                      scrollToSection('cta');
+                      navigate('/magic-formula');
                     }}
                     className="button-gradient mt-4"
                   >
