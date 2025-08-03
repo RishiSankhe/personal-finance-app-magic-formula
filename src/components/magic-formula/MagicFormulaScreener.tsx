@@ -514,12 +514,12 @@ export const MagicFormulaScreener = ({ onBack }: MagicFormulaScreenerProps) => {
             </div>
             
             {/* AI Analysis */}
-            <div className="mt-4 p-3 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border border-purple-200">
+            <div className="mt-4 p-3 bg-muted/30 rounded-lg border border-muted/50">
               <h5 className="text-sm font-medium mb-2 flex items-center gap-2">
-                <Brain className="w-4 h-4 text-purple-600" />
+                <Brain className="w-4 h-4 text-primary" />
                 Market Trend Analysis
               </h5>
-              <p className="text-sm text-purple-700">{stock.marketTrends}</p>
+              <p className="text-sm text-foreground">{stock.marketTrends}</p>
             </div>
           </div>
 

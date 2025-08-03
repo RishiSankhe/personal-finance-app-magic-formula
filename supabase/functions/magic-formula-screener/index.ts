@@ -191,7 +191,13 @@ serve(async (req) => {
     );
     const allSymbols = await symbolsResponse.json();
     
-    console.log(`Found ${allSymbols.length} total US stocks`);
+    console.log(`Found ${allSymbols ? allSymbols.length : 0} total US stocks`);
+
+    // Check if API response is valid
+    if (!Array.isArray(allSymbols)) {
+      console.error('Invalid symbols response:', allSymbols);
+      throw new Error('Failed to fetch valid stock symbols from Finnhub');
+    }
 
     // Filter symbols based on sector or get a diverse sample
     let symbolsToAnalyze = [];
@@ -337,29 +343,31 @@ serve(async (req) => {
     // Separate results into general recommendations and price-optimized recommendations
     const generalRecommendations = stocks.slice(0, 5); // Exactly 5 top stocks
     
-    // Price-optimized recommendations: focus on smart allocation strategy
+    // Price-optimized recommendations: completely different approach focusing on budget efficiency
     const priceOptimized = stocks
       .filter(stock => {
-        // Smart recommendation logic instead of just dividing by price
-        const optimalAllocation = calculateOptimalAllocation(stock.price, investmentAmount);
-        const minPosition = investmentAmount * 0.08; // Min 8% position
-        const maxPosition = investmentAmount * 0.30; // Max 30% position
-        
-        return optimalAllocation >= minPosition && 
-               optimalAllocation <= maxPosition && 
-               stock.price < 100 && // Focus on more affordable stocks
-               stock.overallRank <= 50; // Only from top 50 overall
+        // Focus on stocks that allow for meaningful diversified positions
+        const maxAffordableShares = Math.floor(investmentAmount * 0.25 / stock.price);
+        return maxAffordableShares >= 10 && // Can buy at least 10 shares
+               stock.price <= 75 && // Affordable entry point
+               stock.overallRank <= Math.max(20, stocks.length); // From top performers
       })
-      .map(stock => ({
-        ...stock,
-        sharesYouCanBuy: calculateRecommendedShares(stock.price, investmentAmount),
-        investmentAllocation: calculateOptimalAllocation(stock.price, investmentAmount)
-      }))
+      .map(stock => {
+        // Calculate recommended position size based on smart allocation
+        const recommendedAllocation = calculateOptimalAllocation(stock.price, investmentAmount);
+        const recommendedShares = calculateRecommendedShares(stock.price, investmentAmount);
+        
+        return {
+          ...stock,
+          sharesYouCanBuy: recommendedShares,
+          investmentAllocation: recommendedShares * stock.price,
+          // Add a diversification score for sorting
+          diversificationScore: (recommendedShares * stock.price / investmentAmount) * (50 - stock.overallRank)
+        };
+      })
       .sort((a, b) => {
-        // Sort by value score: combination of rank and affordability
-        const scoreA = (100 - a.overallRank) * (a.investmentAllocation / investmentAmount);
-        const scoreB = (100 - b.overallRank) * (b.investmentAllocation / investmentAmount);
-        return scoreB - scoreA;
+        // Sort by diversification score (better rank + better allocation efficiency)
+        return b.diversificationScore - a.diversificationScore;
       })
       .slice(0, 5); // Exactly 5 optimized picks
 
@@ -446,22 +454,25 @@ serve(async (req) => {
 
 function checkSectorMatch(targetSector: string, stockSector: string): boolean {
   const sectorMappings: { [key: string]: string[] } = {
-    "Technology": ["Software", "Hardware", "Semiconductors", "IT Services", "Technology"],
-    "Healthcare": ["Healthcare", "Pharmaceuticals", "Biotechnology", "Medical", "Health"],
-    "Financial Services": ["Financial", "Banking", "Insurance", "Investment", "Real Estate"],
-    "Consumer Discretionary": ["Consumer Discretionary", "Retail", "Automotive", "Media", "Hotels"],
-    "Communication Services": ["Telecommunications", "Media", "Communication", "Internet"],
-    "Industrials": ["Industrial", "Aerospace", "Transportation", "Construction", "Manufacturing"],
-    "Consumer Staples": ["Consumer Staples", "Food", "Beverages", "Personal Products"],
-    "Energy": ["Energy", "Oil", "Gas", "Renewable", "Utilities"],
-    "Materials": ["Materials", "Chemicals", "Mining", "Paper", "Steel"],
-    "Real Estate": ["Real Estate", "REIT"],
-    "Utilities": ["Utilities", "Electric", "Water", "Gas"]
+    "Technology": ["software", "hardware", "semiconductor", "it services", "technology", "computer", "internet", "tech", "cloud", "cyber"],
+    "Healthcare": ["healthcare", "pharmaceutical", "biotechnology", "medical", "health", "biotech", "drug", "therapeutic", "clinic"],
+    "Financial Services": ["financial", "banking", "insurance", "investment", "finance", "bank", "credit", "loan", "payment", "fintech"],
+    "Consumer Discretionary": ["consumer discretionary", "retail", "automotive", "media", "hotel", "restaurant", "leisure", "entertainment", "apparel"],
+    "Communication Services": ["telecommunication", "media", "communication", "internet", "telecom", "wireless", "cable", "broadcasting"],
+    "Industrials": ["industrial", "aerospace", "transportation", "construction", "manufacturing", "defense", "airline", "machinery"],
+    "Consumer Staples": ["consumer staples", "food", "beverage", "personal product", "tobacco", "grocery", "household"],
+    "Energy": ["energy", "oil", "gas", "renewable", "petroleum", "coal", "solar", "wind"],
+    "Materials": ["materials", "chemical", "mining", "paper", "steel", "metal", "commodity"],
+    "Real Estate": ["real estate", "reit", "property"],
+    "Utilities": ["utilities", "electric", "water", "gas", "utility", "power"]
   };
   
   const keywords = sectorMappings[targetSector] || [];
+  const lowerStockSector = stockSector.toLowerCase();
+  
   return keywords.some(keyword => 
-    stockSector.toLowerCase().includes(keyword.toLowerCase())
+    lowerStockSector.includes(keyword) || 
+    lowerStockSector.split(' ').some(word => keyword.includes(word))
   );
 }
 

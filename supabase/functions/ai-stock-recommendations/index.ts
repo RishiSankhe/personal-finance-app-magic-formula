@@ -52,6 +52,12 @@ serve(async (req) => {
     );
     const allSymbols = await symbolsResponse.json();
 
+    // Check if API response is valid
+    if (!Array.isArray(allSymbols)) {
+      console.error('Invalid symbols response from Finnhub:', allSymbols);
+      throw new Error('Failed to fetch valid stock symbols from Finnhub');
+    }
+
     // Filter relevant stocks for the sector
     let sectorSymbols = allSymbols
       .filter((stock: any) => stock.type === "Common Stock")
