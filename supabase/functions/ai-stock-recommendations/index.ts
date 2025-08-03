@@ -7,8 +7,8 @@ const FINNHUB_API_KEY = Deno.env.get("FINNHUB_API_KEY");
 interface AIRecommendationRequest {
   investmentAmount: number;
   sector: string;
-  riskTolerance: 'conservative' | 'moderate' | 'aggressive';
-  timeHorizon: 'short' | 'medium' | 'long';
+  riskTolerance: string;
+  timeHorizon: string;
 }
 
 interface AIStock {
@@ -71,7 +71,7 @@ serve(async (req) => {
 
     // Create market context for AI
     const marketContext = {
-      currentTrends: marketNews.slice(0, 5).map((news: any) => news.headline).join('. '),
+      currentTrends: Array.isArray(marketNews) ? marketNews.slice(0, 5).map((news: any) => news.headline).join('. ') : 'Market analysis in progress',
       sectorFocus: sector,
       investmentAmount,
       timeHorizon,
@@ -79,94 +79,99 @@ serve(async (req) => {
     };
 
     // Use GPT-4 to analyze and recommend stocks
-    const prompt = `
-You are an expert financial advisor specializing in Magic Formula investing and market analysis. 
+    const prompt = `As a financial advisor combining Magic Formula investing with AI market analysis, recommend exactly 5 stocks for a $${investmentAmount} investment in ${sector === "All Sectors" ? "any sector" : sector + " sector"}.
 
-INVESTMENT PARAMETERS:
-- Investment Amount: $${investmentAmount}
-- Sector Focus: ${sector}
-- Risk Tolerance: ${riskTolerance}
-- Time Horizon: ${timeHorizon}
+    Investment Profile:
+    - Amount: $${investmentAmount}
+    - Risk Tolerance: ${riskTolerance}
+    - Time Horizon: ${timeHorizon}
+    - Sector Focus: ${sector}
 
-CURRENT MARKET CONTEXT:
-${marketContext.currentTrends}
+    Current Market Context: ${marketContext.currentTrends}
 
-TASK: Provide exactly 5 AI-powered stock recommendations that combine:
-1. Magic Formula principles (high earnings yield + high return on capital)
-2. Current market trends and momentum
-3. Optimal position sizing for the given budget
-4. Sector-specific opportunities
-
-For each recommendation, provide:
-- Stock symbol (US exchange only)
-- Recommended number of shares to buy
-- Investment allocation amount
-- Confidence score (1-100)
-- 2-sentence reasoning combining Magic Formula metrics with current market trends
-- Brief market trend insight
-
-FORMAT YOUR RESPONSE AS JSON:
-{
-  "recommendations": [
+    Please provide exactly 5 stock recommendations in this JSON format:
     {
-      "symbol": "STOCK_SYMBOL",
-      "recommendedShares": number,
-      "allocationAmount": number,
-      "confidence": number,
-      "reasoning": "Brief explanation combining Magic Formula and market trends",
-      "marketTrends": "Current trend insight"
+      "recommendations": [
+        {
+          "symbol": "STOCK",
+          "recommendedShares": number,
+          "allocationAmount": number (should sum to approximately ${investmentAmount}),
+          "confidence": number (1-100),
+          "reasoning": "detailed explanation combining Magic Formula metrics",
+          "marketTrends": "current market trend analysis for this stock"
+        }
+      ],
+      "marketSummary": "overall market analysis and strategy summary"
     }
-  ],
-  "marketSummary": "Overall market outlook for this investment strategy"
-}
 
-Focus on stocks under $100 that offer good Magic Formula metrics and align with current market momentum.
-`;
+    Focus on stocks with:
+    - Strong earnings yield (low P/E ratios)
+    - High return on invested capital
+    - Quality business fundamentals
+    - Favorable current market trends
+    - Appropriate for ${riskTolerance} risk tolerance and ${timeHorizon} time horizon
 
-    const gptResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+    Ensure the 5 allocations sum to approximately $${investmentAmount}.`;
+
+    const aiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${openAIApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4.1-2025-04-14',
+        model: 'gpt-4o-mini',
         messages: [
           { 
             role: 'system', 
-            content: 'You are a professional financial advisor with expertise in Magic Formula investing, market analysis, and portfolio construction. Provide actionable, data-driven investment recommendations.' 
+            content: 'You are an expert financial advisor specializing in Magic Formula investing with real-time market analysis. Always respond with valid JSON.' 
           },
           { role: 'user', content: prompt }
         ],
-        temperature: 0.3,
-        max_tokens: 2000,
+        temperature: 0.7,
+        max_tokens: 2000
       }),
     });
 
-    if (!gptResponse.ok) {
-      throw new Error(`OpenAI API error: ${gptResponse.statusText}`);
+    if (!aiResponse.ok) {
+      throw new Error(`OpenAI API error: ${aiResponse.status}`);
     }
 
-    const gptData = await gptResponse.json();
-    const aiAnalysis = JSON.parse(gptData.choices[0].message.content);
+    const aiData = await aiResponse.json();
+    const aiContent = aiData.choices[0].message.content;
+    
+    // Parse AI response
+    let aiRecommendations;
+    try {
+      const jsonMatch = aiContent.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        aiRecommendations = JSON.parse(jsonMatch[0]);
+      } else {
+        throw new Error('No valid JSON found in AI response');
+      }
+    } catch (parseError) {
+      console.error('Failed to parse AI response:', parseError);
+      throw new Error('Invalid AI response format');
+    }
 
-    // Enhance AI recommendations with real market data
+    // Enhance recommendations with real stock data
     const enhancedRecommendations: AIStock[] = [];
-
-    for (const rec of aiAnalysis.recommendations) {
+    
+    for (const rec of aiRecommendations.recommendations) {
       try {
-        // Get real-time data for each recommended stock
-        const [quoteResponse, profileResponse] = await Promise.all([
-          fetch(`https://finnhub.io/api/v1/quote?symbol=${rec.symbol}&token=${FINNHUB_API_KEY}`),
-          fetch(`https://finnhub.io/api/v1/stock/profile2?symbol=${rec.symbol}&token=${FINNHUB_API_KEY}`)
+        // Get real stock data from Finnhub
+        const [profileResponse, quoteResponse] = await Promise.all([
+          fetch(`https://finnhub.io/api/v1/stock/profile2?symbol=${rec.symbol}&token=${FINNHUB_API_KEY}`),
+          fetch(`https://finnhub.io/api/v1/quote?symbol=${rec.symbol}&token=${FINNHUB_API_KEY}`)
         ]);
 
-        const [quoteData, profileData] = await Promise.all([
-          quoteResponse.json(),
-          profileResponse.json()
+        const [profileData, quoteData] = await Promise.all([
+          profileResponse.json(),
+          quoteResponse.json()
         ]);
 
-        if (quoteData.c && profileData.name) {
+        // Use real data if available, otherwise use AI estimates
+        if (profileData.name && quoteData.c && quoteData.c > 0) {
           enhancedRecommendations.push({
             symbol: rec.symbol,
             name: profileData.name,
@@ -189,7 +194,7 @@ Focus on stocks under $100 that offer good Magic Formula metrics and align with 
         enhancedRecommendations.push({
           symbol: rec.symbol,
           name: `${rec.symbol} Corporation`,
-          price: rec.allocationAmount / rec.recommendedShares,
+          price: Math.round(rec.allocationAmount / rec.recommendedShares * 100) / 100,
           recommendedShares: rec.recommendedShares,
           allocationAmount: rec.allocationAmount,
           confidence: rec.confidence,
@@ -201,60 +206,98 @@ Focus on stocks under $100 that offer good Magic Formula metrics and align with 
     }
 
     return new Response(
-      JSON.stringify({
+      JSON.stringify({ 
         aiRecommendations: enhancedRecommendations,
-        marketSummary: aiAnalysis.marketSummary,
+        marketSummary: aiRecommendations.marketSummary,
         investmentAmount,
         sector,
-        totalRecommendations: enhancedRecommendations.length,
-        analysisTimestamp: new Date().toISOString()
+        totalRecommendations: enhancedRecommendations.length
       }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      { 
+        headers: { 
+          ...corsHeaders,
+          'Content-Type': 'application/json' 
+        } 
       }
     );
 
   } catch (error) {
     console.error('AI Recommendations Error:', error);
-
-    // Fallback mock AI recommendations
-    const mockAIRecommendations: AIStock[] = [
+    
+    // Return enhanced mock data as fallback
+    const mockRecommendations: AIStock[] = [
       {
         symbol: "NVDA",
         name: "NVIDIA Corporation",
         price: 875.28,
-        recommendedShares: Math.floor(investmentAmount * 0.25 / 875.28),
-        allocationAmount: investmentAmount * 0.25,
+        recommendedShares: Math.floor(15000 * 0.25 / 875.28),
+        allocationAmount: 15000 * 0.25,
         confidence: 92,
-        reasoning: "AI leader with strong Magic Formula metrics and positioned to benefit from continued AI adoption trends.",
-        marketTrends: "AI infrastructure demand driving exceptional growth momentum",
+        reasoning: "AI leader with strong Magic Formula metrics and positioned to benefit from continued AI adoption trends across industries.",
+        marketTrends: "AI infrastructure demand driving exceptional growth momentum in data centers and cloud computing",
         magicFormulaScore: 87
       },
       {
-        symbol: "SMCI",
-        name: "Super Micro Computer Inc",
-        price: 45.67,
-        recommendedShares: Math.floor(investmentAmount * 0.20 / 45.67),
-        allocationAmount: investmentAmount * 0.20,
+        symbol: "PLTR",
+        name: "Palantir Technologies Inc",
+        price: 154.27,
+        recommendedShares: Math.floor(15000 * 0.18 / 154.27),
+        allocationAmount: 15000 * 0.18,
         confidence: 85,
-        reasoning: "High earnings yield with strong return on capital, benefiting from AI server demand surge.",
-        marketTrends: "Data center expansion creating sustained demand",
+        reasoning: "Government and enterprise AI contracts growing rapidly with improving profitability metrics and strong earnings yield.",
+        marketTrends: "Enterprise AI adoption accelerating with strong government contract pipeline and commercial growth",
         magicFormulaScore: 91
+      },
+      {
+        symbol: "MSFT",
+        name: "Microsoft Corporation",
+        price: 425.45,
+        recommendedShares: Math.floor(15000 * 0.20 / 425.45),
+        allocationAmount: 15000 * 0.20,
+        confidence: 88,
+        reasoning: "Dominant cloud platform with integrated AI services and strong Magic Formula fundamentals showing consistent profitability.",
+        marketTrends: "Cloud computing growth accelerating with AI integration across Azure and Office 365",
+        magicFormulaScore: 85
+      },
+      {
+        symbol: "GOOGL",
+        name: "Alphabet Inc Class A",
+        price: 178.32,
+        recommendedShares: Math.floor(15000 * 0.22 / 178.32),
+        allocationAmount: 15000 * 0.22,
+        confidence: 86,
+        reasoning: "Search dominance with strong AI integration and attractive valuation metrics based on Magic Formula analysis.",
+        marketTrends: "AI search integration and cloud growth driving revenue expansion",
+        magicFormulaScore: 82
+      },
+      {
+        symbol: "AMD",
+        name: "Advanced Micro Devices Inc",
+        price: 142.89,
+        recommendedShares: Math.floor(15000 * 0.15 / 142.89),
+        allocationAmount: 15000 * 0.15,
+        confidence: 81,
+        reasoning: "Strong competitor in AI chips with improving market share and efficient capital allocation.",
+        marketTrends: "GPU market expansion driven by AI workloads and data center demand",
+        magicFormulaScore: 79
       }
     ];
 
     return new Response(
-      JSON.stringify({
-        aiRecommendations: mockAIRecommendations,
-        marketSummary: "Market shows strong momentum in technology sector with AI-driven growth opportunities.",
-        investmentAmount: investmentAmount || 15000,
-        sector: sector || "Technology",
+      JSON.stringify({ 
+        aiRecommendations: mockRecommendations,
+        marketSummary: "Current market conditions favor AI-focused technology companies with strong fundamentals. The Magic Formula approach combined with AI market trends suggests focusing on companies with proven execution and growing market share in AI infrastructure and applications.",
+        investmentAmount: 15000,
+        sector: "All Sectors",
+        totalRecommendations: 5,
         fallback: true,
-        error: error.message,
-        totalRecommendations: 2
+        error: error.message
       }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      { 
+        headers: { 
+          ...corsHeaders,
+          'Content-Type': 'application/json' 
+        } 
       }
     );
   }

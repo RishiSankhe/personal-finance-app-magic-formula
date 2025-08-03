@@ -177,25 +177,25 @@ export const MagicFormulaScreener = ({ onBack }: MagicFormulaScreenerProps) => {
         magicFormulaScore: 87
       },
       {
+        symbol: "PLTR",
+        name: "Palantir Technologies Inc",
+        price: 154.27,
+        recommendedShares: Math.floor(amount * 0.18 / 154.27),
+        allocationAmount: amount * 0.18,
+        confidence: 85,
+        reasoning: "Government and enterprise AI contracts growing rapidly with improving profitability metrics and strong earnings yield.",
+        marketTrends: "Enterprise AI adoption accelerating with strong government contract pipeline and commercial growth",
+        magicFormulaScore: 91
+      },
+      {
         symbol: "SMCI",
         name: "Super Micro Computer Inc",
         price: 45.67,
         recommendedShares: Math.floor(amount * 0.20 / 45.67),
         allocationAmount: amount * 0.20,
-        confidence: 85,
+        confidence: 78,
         reasoning: "High earnings yield with strong return on capital, directly benefiting from AI server demand surge.",
         marketTrends: "Data center expansion creating sustained demand for high-performance computing solutions",
-        magicFormulaScore: 91
-      },
-      {
-        symbol: "PLTR",
-        name: "Palantir Technologies Inc",
-        price: 32.45,
-        recommendedShares: Math.floor(amount * 0.18 / 32.45),
-        allocationAmount: amount * 0.18,
-        confidence: 78,
-        reasoning: "Government and enterprise AI contracts growing rapidly with improving profitability metrics.",
-        marketTrends: "Enterprise AI adoption accelerating with strong government contract pipeline",
         magicFormulaScore: 83
       },
       {
@@ -210,14 +210,14 @@ export const MagicFormulaScreener = ({ onBack }: MagicFormulaScreenerProps) => {
         magicFormulaScore: 85
       },
       {
-        symbol: "IONQ",
-        name: "IonQ Inc",
-        price: 28.76,
-        recommendedShares: Math.floor(amount * 0.17 / 28.76),
+        symbol: "MSFT",
+        name: "Microsoft Corporation",
+        price: 425.45,
+        recommendedShares: Math.floor(amount * 0.17 / 425.45),
         allocationAmount: amount * 0.17,
-        confidence: 72,
-        reasoning: "Quantum computing pioneer with early mover advantage and strong intellectual property portfolio.",
-        marketTrends: "Quantum computing gaining traction for specialized AI and optimization applications",
+        confidence: 88,
+        reasoning: "Dominant cloud platform with integrated AI services and strong Magic Formula fundamentals showing consistent profitability.",
+        marketTrends: "Cloud computing growth accelerating with AI integration across Azure and Office 365",
         magicFormulaScore: 79
       }
     ];
