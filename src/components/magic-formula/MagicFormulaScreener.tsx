@@ -5,10 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Target, TrendingUp, DollarSign, Briefcase } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ArrowLeft, Target, TrendingUp, DollarSign, Briefcase, Bot, Brain, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Navigation from "@/components/Navigation";
-import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
 interface Stock {
@@ -30,6 +30,27 @@ interface Stock {
   exchange: string;
 }
 
+
+interface AIStock {
+  symbol: string;
+  name: string;
+  price: number;
+  recommendedShares: number;
+  allocationAmount: number;
+  confidence: number;
+  reasoning: string;
+  marketTrends: string;
+  magicFormulaScore: number;
+}
+
+interface AIResults {
+  aiRecommendations: AIStock[];
+  marketSummary: string;
+  investmentAmount: number;
+  sector: string;
+  totalRecommendations: number;
+}
+
 interface ScreenerResults {
   generalRecommendations: Stock[];
   priceOptimizedRecommendations: Stock[];
@@ -46,10 +67,13 @@ interface MagicFormulaScreenerProps {
 export const MagicFormulaScreener = ({ onBack }: MagicFormulaScreenerProps) => {
   const [selectedSector, setSelectedSector] = useState<string>("All Sectors");
   const [investmentAmount, setInvestmentAmount] = useState<number>(15000);
+  const [riskTolerance, setRiskTolerance] = useState<string>("moderate");
+  const [timeHorizon, setTimeHorizon] = useState<string>("medium");
   const [results, setResults] = useState<ScreenerResults | null>(null);
+  const [aiResults, setAiResults] = useState<AIResults | null>(null);
   const [loading, setLoading] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
   const { toast } = useToast();
-  const navigate = useNavigate();
 
   const sectors = [
     "All Sectors",
@@ -100,6 +124,111 @@ export const MagicFormulaScreener = ({ onBack }: MagicFormulaScreenerProps) => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const runAIRecommendations = async () => {
+    setAiLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('ai-stock-recommendations', {
+        body: {
+          investmentAmount,
+          sector: selectedSector,
+          riskTolerance,
+          timeHorizon
+        }
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      setAiResults(data);
+      
+      toast({
+        title: "AI Analysis Complete",
+        description: `Generated ${data.totalRecommendations} AI-powered recommendations`,
+      });
+    } catch (error) {
+      console.error('AI Recommendations error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to generate AI recommendations. Please try again.",
+        variant: "destructive"
+      });
+      
+      // Fallback to mock AI data
+      setAiResults(getMockAIResults(selectedSector, investmentAmount));
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  const getMockAIResults = (sector: string, amount: number): AIResults => {
+    const mockAIStocks: AIStock[] = [
+      {
+        symbol: "NVDA",
+        name: "NVIDIA Corporation",
+        price: 875.28,
+        recommendedShares: Math.floor(amount * 0.25 / 875.28),
+        allocationAmount: amount * 0.25,
+        confidence: 92,
+        reasoning: "AI leader with strong Magic Formula metrics and positioned to benefit from continued AI adoption trends across industries.",
+        marketTrends: "AI infrastructure demand driving exceptional growth momentum in data centers and cloud computing",
+        magicFormulaScore: 87
+      },
+      {
+        symbol: "SMCI",
+        name: "Super Micro Computer Inc",
+        price: 45.67,
+        recommendedShares: Math.floor(amount * 0.20 / 45.67),
+        allocationAmount: amount * 0.20,
+        confidence: 85,
+        reasoning: "High earnings yield with strong return on capital, directly benefiting from AI server demand surge.",
+        marketTrends: "Data center expansion creating sustained demand for high-performance computing solutions",
+        magicFormulaScore: 91
+      },
+      {
+        symbol: "PLTR",
+        name: "Palantir Technologies Inc",
+        price: 32.45,
+        recommendedShares: Math.floor(amount * 0.18 / 32.45),
+        allocationAmount: amount * 0.18,
+        confidence: 78,
+        reasoning: "Government and enterprise AI contracts growing rapidly with improving profitability metrics.",
+        marketTrends: "Enterprise AI adoption accelerating with strong government contract pipeline",
+        magicFormulaScore: 83
+      },
+      {
+        symbol: "AMD",
+        name: "Advanced Micro Devices Inc",
+        price: 142.89,
+        recommendedShares: Math.floor(amount * 0.20 / 142.89),
+        allocationAmount: amount * 0.20,
+        confidence: 81,
+        reasoning: "Strong competitor in AI chips with improving market share and efficient capital allocation.",
+        marketTrends: "GPU market expansion driven by AI workloads and data center demand",
+        magicFormulaScore: 85
+      },
+      {
+        symbol: "IONQ",
+        name: "IonQ Inc",
+        price: 28.76,
+        recommendedShares: Math.floor(amount * 0.17 / 28.76),
+        allocationAmount: amount * 0.17,
+        confidence: 72,
+        reasoning: "Quantum computing pioneer with early mover advantage and strong intellectual property portfolio.",
+        marketTrends: "Quantum computing gaining traction for specialized AI and optimization applications",
+        magicFormulaScore: 79
+      }
+    ];
+
+    return {
+      aiRecommendations: mockAIStocks,
+      marketSummary: "Current market conditions favor AI-focused technology companies with strong fundamentals. The Magic Formula approach combined with AI market trends suggests focusing on companies with proven execution and growing market share in AI infrastructure and applications.",
+      investmentAmount: amount,
+      sector: sector,
+      totalRecommendations: 5
+    };
   };
 
   const getMockResults = (sector: string, amount: number): ScreenerResults => {
@@ -157,6 +286,42 @@ export const MagicFormulaScreener = ({ onBack }: MagicFormulaScreenerProps) => {
         investmentAllocation: Math.floor((amount * 0.2) / 12.34) * 12.34,
         country: "US",
         exchange: "NYSE"
+      },
+      { 
+        symbol: "COOP", 
+        name: "Mr. Cooper Group Inc", 
+        price: 89.23, 
+        earningsYield: 0.095, 
+        returnOnCapital: 0.142, 
+        magicFormulaRank: 4, 
+        overallRank: 38,
+        sector: "Financial Services", 
+        marketCap: 6500000000,
+        peRatio: 10.5,
+        eps: 8.50,
+        revenue: 3200000000,
+        sharesYouCanBuy: Math.floor((amount * 0.18) / 89.23),
+        investmentAllocation: Math.floor((amount * 0.18) / 89.23) * 89.23,
+        country: "US",
+        exchange: "NASDAQ"
+      },
+      { 
+        symbol: "BYND", 
+        name: "Beyond Meat Inc", 
+        price: 6.78, 
+        earningsYield: 0.156, 
+        returnOnCapital: 0.098, 
+        magicFormulaRank: 5, 
+        overallRank: 67,
+        sector: "Consumer Staples", 
+        marketCap: 450000000,
+        peRatio: 6.4,
+        eps: 1.06,
+        revenue: 410000000,
+        sharesYouCanBuy: Math.floor((amount * 0.15) / 6.78),
+        investmentAllocation: Math.floor((amount * 0.15) / 6.78) * 6.78,
+        country: "US",
+        exchange: "NASDAQ"
       }
     ];
 
@@ -218,24 +383,28 @@ export const MagicFormulaScreener = ({ onBack }: MagicFormulaScreenerProps) => {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-              <div>
-                <p className="text-2xl font-bold">{formatCurrency(stock.price)}</p>
-                <p className="text-xs text-muted-foreground">Current Price</p>
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
+                <div>
+                  <p className="text-2xl font-bold">{formatCurrency(stock.price)}</p>
+                  <p className="text-xs text-muted-foreground">Current Price</p>
+                </div>
+                <div>
+                  <p className="text-lg font-semibold text-primary">{(stock.earningsYield * 100).toFixed(1)}%</p>
+                  <p className="text-xs text-muted-foreground">Earnings Yield</p>
+                </div>
+                <div>
+                  <p className="text-lg font-semibold text-primary">{(stock.returnOnCapital * 100).toFixed(1)}%</p>
+                  <p className="text-xs text-muted-foreground">Return on Capital</p>
+                </div>
+                <div>
+                  <p className="text-lg font-semibold text-blue-400">{stock.peRatio ? stock.peRatio.toFixed(1) : 'N/A'}</p>
+                  <p className="text-xs text-muted-foreground">P/E Ratio</p>
+                </div>
+                <div>
+                  <p className="text-lg font-semibold text-green-400">#{stock.overallRank}</p>
+                  <p className="text-xs text-muted-foreground">Market Rank</p>
+                </div>
               </div>
-              <div>
-                <p className="text-lg font-semibold text-primary">{(stock.earningsYield * 100).toFixed(1)}%</p>
-                <p className="text-xs text-muted-foreground">Earnings Yield</p>
-              </div>
-              <div>
-                <p className="text-lg font-semibold text-primary">{(stock.returnOnCapital * 100).toFixed(1)}%</p>
-                <p className="text-xs text-muted-foreground">Return on Capital</p>
-              </div>
-              <div>
-                <p className="text-lg font-semibold text-blue-400">{stock.peRatio ? stock.peRatio.toFixed(1) : 'N/A'}</p>
-                <p className="text-xs text-muted-foreground">P/E Ratio</p>
-              </div>
-            </div>
             
             {/* Investment Allocation */}
             <div className="mt-4 p-3 bg-muted/50 rounded-lg">
@@ -305,6 +474,78 @@ export const MagicFormulaScreener = ({ onBack }: MagicFormulaScreenerProps) => {
     </Card>
   );
 
+  const renderAIStockCard = (stock: AIStock, index: number) => (
+    <Card key={stock.symbol} className="border-white/10 bg-background/50 backdrop-blur-sm hover:border-primary/20 transition-colors">
+      <CardContent className="p-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Stock Info */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center">
+                <Bot className="w-6 h-6 text-white" />
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <h3 className="font-semibold text-xl">{stock.symbol}</h3>
+                  <Badge variant="outline" className="text-xs bg-purple-100 text-purple-800">
+                    AI Confidence: {stock.confidence}%
+                  </Badge>
+                </div>
+                <p className="text-muted-foreground">{stock.name}</p>
+                <p className="text-sm text-muted-foreground">
+                  Magic Formula Score: {stock.magicFormulaScore}/100
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-center">
+              <div>
+                <p className="text-2xl font-bold">{formatCurrency(stock.price)}</p>
+                <p className="text-xs text-muted-foreground">Current Price</p>
+              </div>
+              <div>
+                <p className="text-lg font-semibold text-green-400">{stock.recommendedShares}</p>
+                <p className="text-xs text-muted-foreground">AI Recommended Shares</p>
+              </div>
+              <div>
+                <p className="text-lg font-semibold text-blue-400">{formatCurrency(stock.allocationAmount)}</p>
+                <p className="text-xs text-muted-foreground">Allocation Amount</p>
+              </div>
+            </div>
+            
+            {/* AI Analysis */}
+            <div className="mt-4 p-3 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border border-purple-200">
+              <h5 className="text-sm font-medium mb-2 flex items-center gap-2">
+                <Brain className="w-4 h-4 text-purple-600" />
+                Market Trend Analysis
+              </h5>
+              <p className="text-sm text-purple-700">{stock.marketTrends}</p>
+            </div>
+          </div>
+
+          {/* AI Investment Reasoning */}
+          <div className="space-y-3">
+            <h4 className="font-semibold text-lg flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-yellow-500" />
+              AI Investment Reasoning
+            </h4>
+            <p className="text-muted-foreground leading-relaxed">
+              {stock.reasoning}
+            </p>
+            <div className="flex items-center gap-2 flex-wrap">
+              <Badge className="text-xs bg-gradient-to-r from-purple-500 to-blue-500 text-white">
+                AI-Powered Pick #{index + 1}
+              </Badge>
+              <Badge variant="outline" className="text-xs">
+                Portfolio Weight: {((stock.allocationAmount / investmentAmount) * 100).toFixed(1)}%
+              </Badge>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
@@ -327,137 +568,281 @@ export const MagicFormulaScreener = ({ onBack }: MagicFormulaScreenerProps) => {
               <span className="text-gradient font-medium">Stock Screener</span>
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto mt-4">
-              Discover undervalued stocks across ALL publicly traded companies with investment amount optimization
+              Discover undervalued stocks with AI-powered insights and investment optimization
             </p>
           </div>
 
-        {/* Controls */}
-        <Card className="border-white/10 bg-background/50 backdrop-blur-sm">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Target className="w-5 h-5 text-primary" />
-              Screening Parameters
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="space-y-2">
-              <Label htmlFor="investment-amount">Intended Investment Amount</Label>
-              <div className="relative">
-                <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                <Input
-                  id="investment-amount"
-                  type="number"
-                  value={investmentAmount}
-                  onChange={(e) => setInvestmentAmount(Number(e.target.value))}
-                  placeholder="15000"
-                  className="pl-10"
-                />
-              </div>
-            </div>
+          <Tabs defaultValue="screener" className="space-y-8">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="screener" className="flex items-center gap-2">
+                <Target className="w-4 h-4" />
+                Magic Formula Screener
+              </TabsTrigger>
+              <TabsTrigger value="ai-recommendations" className="flex items-center gap-2">
+                <Bot className="w-4 h-4" />
+                AI-Powered Recommendations
+              </TabsTrigger>
+            </TabsList>
 
-            <div className="space-y-2">
-              <Label htmlFor="sector">Sector</Label>
-              <Select value={selectedSector} onValueChange={setSelectedSector}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select sector" />
-                </SelectTrigger>
-                <SelectContent>
-                  {sectors.map((sector) => (
-                    <SelectItem key={sector} value={sector}>
-                      {sector}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <TabsContent value="screener" className="space-y-8">
+              {/* Controls */}
+              <Card className="border-white/10 bg-background/50 backdrop-blur-sm">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Target className="w-5 h-5 text-primary" />
+                    Screening Parameters
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="investment-amount">Intended Investment Amount</Label>
+                    <div className="relative">
+                      <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                      <Input
+                        id="investment-amount"
+                        type="number"
+                        value={investmentAmount}
+                        onChange={(e) => setInvestmentAmount(Number(e.target.value))}
+                        placeholder="15000"
+                        className="pl-10"
+                      />
+                    </div>
+                  </div>
 
-            <div className="flex items-end">
-              <Button 
-                onClick={runScreener}
-                disabled={loading}
-                className="button-gradient w-full"
-                size="lg"
-              >
-                {loading ? "Screening..." : "Run Screen"}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+                  <div className="space-y-2">
+                    <Label htmlFor="sector">Sector</Label>
+                    <Select value={selectedSector} onValueChange={setSelectedSector}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select sector" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {sectors.map((sector) => (
+                          <SelectItem key={sector} value={sector}>
+                            {sector}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-        {/* Results */}
-        {results && (
-          <div className="space-y-8">
-            {/* General Recommendations */}
-            <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-semibold">Top Magic Formula Rankings</h2>
-                <Badge variant="secondary" className="px-3 py-1">
-                  {results.generalRecommendations.length} stocks • {results.sector}
-                </Badge>
-              </div>
+                  <div className="flex items-end">
+                    <Button 
+                      onClick={runScreener}
+                      disabled={loading}
+                      className="button-gradient w-full"
+                      size="lg"
+                    >
+                      {loading ? "Screening..." : "Run Screen"}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
 
-              <div className="grid gap-6">
-                {results.generalRecommendations.slice(0, 10).map((stock, index) => 
-                  renderStockCard(stock, index, false)
-                )}
-              </div>
-            </div>
+              {/* Traditional Screener Results */}
+              {results && (
+                <div className="space-y-8">
+                  {/* General Recommendations */}
+                  <div className="space-y-6">
+                    <div className="flex items-center justify-between">
+                      <h2 className="text-2xl font-semibold">Top Magic Formula Rankings</h2>
+                      <Badge variant="secondary" className="px-3 py-1">
+                        {results.generalRecommendations.length} stocks • {results.sector}
+                      </Badge>
+                    </div>
 
-            {/* Price-Optimized Recommendations */}
-            {results.priceOptimizedRecommendations.length > 0 && (
-              <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-2xl font-semibold">Price-Optimized for Your Budget</h2>
-                  <Badge variant="secondary" className="px-3 py-1 bg-green-100 text-green-800">
-                    {results.priceOptimizedRecommendations.length} optimal picks
-                  </Badge>
-                </div>
+                    <div className="grid gap-6">
+                      {results.generalRecommendations.slice(0, 5).map((stock, index) => 
+                        renderStockCard(stock, index, false)
+                      )}
+                    </div>
+                  </div>
 
-                <div className="grid gap-6">
-                  {results.priceOptimizedRecommendations.slice(0, 8).map((stock, index) => 
-                    renderStockCard(stock, index, true)
+                  {/* Price-Optimized Recommendations */}
+                  {results.priceOptimizedRecommendations.length > 0 && (
+                    <div className="space-y-6">
+                      <div className="flex items-center justify-between">
+                        <h2 className="text-2xl font-semibold">Price-Optimized for Your Budget</h2>
+                        <Badge variant="secondary" className="px-3 py-1 bg-green-100 text-green-800">
+                          {results.priceOptimizedRecommendations.length} optimal picks
+                        </Badge>
+                      </div>
+
+                      <div className="grid gap-6">
+                        {results.priceOptimizedRecommendations.slice(0, 5).map((stock, index) => 
+                          renderStockCard(stock, index, true)
+                        )}
+                      </div>
+                    </div>
                   )}
-                </div>
-              </div>
-            )}
 
-            {/* Summary Stats */}
-            <Card className="border-primary/20 bg-primary/5 backdrop-blur-sm">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5 text-primary" />
-                  Screening Summary
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                  <div>
-                    <p className="text-2xl font-bold">{results.totalAnalyzed}</p>
-                    <p className="text-sm text-muted-foreground">Stocks Analyzed</p>
+                  {/* Summary Stats */}
+                  <Card className="border-primary/20 bg-primary/5 backdrop-blur-sm">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <TrendingUp className="w-5 h-5 text-primary" />
+                        Screening Summary
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                        <div>
+                          <p className="text-2xl font-bold">{results.totalAnalyzed}</p>
+                          <p className="text-sm text-muted-foreground">Stocks Analyzed</p>
+                        </div>
+                        <div>
+                          <p className="text-2xl font-bold">{formatMarketCap(results.totalInMarket)}</p>
+                          <p className="text-sm text-muted-foreground">Total Market Stocks</p>
+                        </div>
+                        <div>
+                          <p className="text-2xl font-bold">{formatCurrency(results.investmentAmount)}</p>
+                          <p className="text-sm text-muted-foreground">Investment Budget</p>
+                        </div>
+                        <div>
+                          <p className="text-2xl font-bold text-green-400">
+                            {results.generalRecommendations.length > 0 ? 
+                              (results.generalRecommendations.reduce((sum, stock) => sum + stock.earningsYield, 0) / results.generalRecommendations.length * 100).toFixed(1) + '%' : 
+                              '0%'
+                            }
+                          </p>
+                          <p className="text-sm text-muted-foreground">Avg Earnings Yield</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="ai-recommendations" className="space-y-8">
+              {/* AI Controls */}
+              <Card className="border-white/10 bg-background/50 backdrop-blur-sm">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Bot className="w-5 h-5 text-purple-600" />
+                    AI Analysis Parameters
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="ai-investment-amount">Investment Amount</Label>
+                    <div className="relative">
+                      <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                      <Input
+                        id="ai-investment-amount"
+                        type="number"
+                        value={investmentAmount}
+                        onChange={(e) => setInvestmentAmount(Number(e.target.value))}
+                        placeholder="15000"
+                        className="pl-10"
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-2xl font-bold">{formatMarketCap(results.totalInMarket)}</p>
-                    <p className="text-sm text-muted-foreground">Total Market Stocks</p>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="ai-sector">Sector Focus</Label>
+                    <Select value={selectedSector} onValueChange={setSelectedSector}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select sector" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {sectors.map((sector) => (
+                          <SelectItem key={sector} value={sector}>
+                            {sector}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
-                  <div>
-                    <p className="text-2xl font-bold">{formatCurrency(results.investmentAmount)}</p>
-                    <p className="text-sm text-muted-foreground">Investment Budget</p>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="risk-tolerance">Risk Tolerance</Label>
+                    <Select value={riskTolerance} onValueChange={setRiskTolerance}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select risk level" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="conservative">Conservative</SelectItem>
+                        <SelectItem value="moderate">Moderate</SelectItem>
+                        <SelectItem value="aggressive">Aggressive</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
-                  <div>
-                    <p className="text-2xl font-bold text-green-400">
-                      {results.generalRecommendations.length > 0 ? 
-                        (results.generalRecommendations.reduce((sum, stock) => sum + stock.earningsYield, 0) / results.generalRecommendations.length * 100).toFixed(1) + '%' : 
-                        '0%'
-                      }
-                    </p>
-                    <p className="text-sm text-muted-foreground">Avg Earnings Yield</p>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="time-horizon">Time Horizon</Label>
+                    <Select value={timeHorizon} onValueChange={setTimeHorizon}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select time horizon" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="short">Short (under 1 year)</SelectItem>
+                        <SelectItem value="medium">Medium (1-5 years)</SelectItem>
+                        <SelectItem value="long">Long (5+ years)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </CardContent>
+                <CardContent className="pt-0">
+                  <Button 
+                    onClick={runAIRecommendations}
+                    disabled={aiLoading}
+                    className="button-gradient w-full"
+                    size="lg"
+                  >
+                    {aiLoading ? (
+                      <div className="flex items-center gap-2">
+                        <Bot className="w-4 h-4 animate-spin" />
+                        AI Analyzing Market...
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <Sparkles className="w-4 h-4" />
+                        Generate AI Recommendations
+                      </div>
+                    )}
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* AI Results */}
+              {aiResults && (
+                <div className="space-y-8">
+                  {/* Market Summary */}
+                  <Card className="border-purple-200 bg-gradient-to-r from-purple-50 to-blue-50">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Brain className="w-5 h-5 text-purple-600" />
+                        AI Market Analysis
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-purple-800 leading-relaxed">{aiResults.marketSummary}</p>
+                    </CardContent>
+                  </Card>
+
+                  {/* AI Recommendations */}
+                  <div className="space-y-6">
+                    <div className="flex items-center justify-between">
+                      <h2 className="text-2xl font-semibold flex items-center gap-2">
+                        <Bot className="w-6 h-6 text-purple-600" />
+                        AI-Powered Stock Recommendations
+                      </h2>
+                      <Badge className="px-3 py-1 bg-gradient-to-r from-purple-500 to-blue-500 text-white">
+                        {aiResults.totalRecommendations} AI picks • {aiResults.sector}
+                      </Badge>
+                    </div>
+
+                    <div className="grid gap-6">
+                      {aiResults.aiRecommendations.map((stock, index) => 
+                        renderAIStockCard(stock, index)
+                      )}
+                    </div>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-      </div>
+              )}
+            </TabsContent>
+          </Tabs>
+        </div>
       </div>
     </div>
   );

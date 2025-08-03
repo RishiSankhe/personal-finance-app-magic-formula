@@ -335,21 +335,33 @@ serve(async (req) => {
     });
 
     // Separate results into general recommendations and price-optimized recommendations
-    const generalRecommendations = stocks.slice(0, Math.min(limit, 20));
+    const generalRecommendations = stocks.slice(0, 5); // Exactly 5 top stocks
     
-    // Price-optimized recommendations: focus on stocks where investment buys meaningful positions
+    // Price-optimized recommendations: focus on smart allocation strategy
     const priceOptimized = stocks
       .filter(stock => {
-        const investmentWeight = stock.investmentAllocation / investmentAmount;
-        return investmentWeight >= 0.05 && investmentWeight <= 0.25 && stock.sharesYouCanBuy >= 10;
+        // Smart recommendation logic instead of just dividing by price
+        const optimalAllocation = calculateOptimalAllocation(stock.price, investmentAmount);
+        const minPosition = investmentAmount * 0.08; // Min 8% position
+        const maxPosition = investmentAmount * 0.30; // Max 30% position
+        
+        return optimalAllocation >= minPosition && 
+               optimalAllocation <= maxPosition && 
+               stock.price < 100 && // Focus on more affordable stocks
+               stock.overallRank <= 50; // Only from top 50 overall
       })
+      .map(stock => ({
+        ...stock,
+        sharesYouCanBuy: calculateRecommendedShares(stock.price, investmentAmount),
+        investmentAllocation: calculateOptimalAllocation(stock.price, investmentAmount)
+      }))
       .sort((a, b) => {
-        // Sort by combination of Magic Formula rank and investment efficiency
-        const efficiencyA = a.sharesYouCanBuy / (a.overallRank || 1);
-        const efficiencyB = b.sharesYouCanBuy / (b.overallRank || 1);
-        return efficiencyB - efficiencyA;
+        // Sort by value score: combination of rank and affordability
+        const scoreA = (100 - a.overallRank) * (a.investmentAllocation / investmentAmount);
+        const scoreB = (100 - b.overallRank) * (b.investmentAllocation / investmentAmount);
+        return scoreB - scoreA;
       })
-      .slice(0, Math.min(limit, 15));
+      .slice(0, 5); // Exactly 5 optimized picks
 
     return new Response(
       JSON.stringify({ 
@@ -451,4 +463,27 @@ function checkSectorMatch(targetSector: string, stockSector: string): boolean {
   return keywords.some(keyword => 
     stockSector.toLowerCase().includes(keyword.toLowerCase())
   );
+}
+
+// Smart allocation calculation functions
+function calculateOptimalAllocation(stockPrice: number, totalInvestment: number): number {
+  // Smart allocation based on stock price and total investment
+  if (stockPrice < 10) {
+    return Math.min(totalInvestment * 0.15, 2000); // 15% max for very cheap stocks
+  } else if (stockPrice < 30) {
+    return Math.min(totalInvestment * 0.20, 3000); // 20% for affordable stocks
+  } else if (stockPrice < 70) {
+    return Math.min(totalInvestment * 0.18, 2500); // 18% for mid-price stocks
+  } else {
+    return Math.min(totalInvestment * 0.12, 1800); // 12% for expensive stocks
+  }
+}
+
+function calculateRecommendedShares(stockPrice: number, totalInvestment: number): number {
+  const optimalAllocation = calculateOptimalAllocation(stockPrice, totalInvestment);
+  const recommendedShares = Math.floor(optimalAllocation / stockPrice);
+  
+  // Ensure minimum meaningful position
+  const minShares = stockPrice < 20 ? 50 : stockPrice < 50 ? 20 : 10;
+  return Math.max(recommendedShares, minShares);
 }
