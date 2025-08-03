@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Target, TrendingUp, Briefcase } from "lucide-react";
+import { ArrowLeft, Target, TrendingUp, DollarSign, Briefcase } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Navigation from "@/components/Navigation";
 import { useNavigate } from "react-router-dom";
@@ -17,14 +18,25 @@ interface Stock {
   earningsYield: number;
   returnOnCapital: number;
   magicFormulaRank: number;
+  overallRank: number;
   sector: string;
   marketCap: number;
   peRatio?: number;
-  bookValue?: number;
   eps?: number;
   revenue?: number;
-  grossProfit?: number;
-  debtToEquity?: number;
+  sharesYouCanBuy: number;
+  investmentAllocation: number;
+  country: string;
+  exchange: string;
+}
+
+interface ScreenerResults {
+  generalRecommendations: Stock[];
+  priceOptimizedRecommendations: Stock[];
+  investmentAmount: number;
+  sector: string;
+  totalAnalyzed: number;
+  totalInMarket: number;
 }
 
 interface MagicFormulaScreenerProps {
@@ -33,7 +45,8 @@ interface MagicFormulaScreenerProps {
 
 export const MagicFormulaScreener = ({ onBack }: MagicFormulaScreenerProps) => {
   const [selectedSector, setSelectedSector] = useState<string>("All Sectors");
-  const [stocks, setStocks] = useState<Stock[]>([]);
+  const [investmentAmount, setInvestmentAmount] = useState<number>(15000);
+  const [results, setResults] = useState<ScreenerResults | null>(null);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -59,7 +72,8 @@ export const MagicFormulaScreener = ({ onBack }: MagicFormulaScreenerProps) => {
       const { data, error } = await supabase.functions.invoke('magic-formula-screener', {
         body: {
           sector: selectedSector,
-          limit: 5
+          investmentAmount,
+          limit: 20
         }
       });
 
@@ -67,11 +81,11 @@ export const MagicFormulaScreener = ({ onBack }: MagicFormulaScreenerProps) => {
         throw error;
       }
 
-      setStocks(data.stocks || []);
+      setResults(data);
       
       toast({
         title: "Screener Complete",
-        description: `Found ${data.stocks?.length || 0} stocks matching Magic Formula criteria`,
+        description: `Found ${data.totalAnalyzed} stocks from ${data.totalInMarket} market stocks`,
       });
     } catch (error) {
       console.error('Screener error:', error);
@@ -82,69 +96,85 @@ export const MagicFormulaScreener = ({ onBack }: MagicFormulaScreenerProps) => {
       });
       
       // Fallback to mock data for demo
-      setStocks(getMockStocks(selectedSector));
+      setResults(getMockResults(selectedSector, investmentAmount));
     } finally {
       setLoading(false);
     }
   };
 
-  const getMockStocks = (sector: string): Stock[] => {
-    const mockData: { [key: string]: Stock[] } = {
-      "Technology": [
-        { symbol: "AAPL", name: "Apple Inc.", price: 192.53, earningsYield: 0.058, returnOnCapital: 0.284, magicFormulaRank: 1, sector: "Technology", marketCap: 3000000000000 },
-        { symbol: "MSFT", name: "Microsoft Corp.", price: 412.64, earningsYield: 0.032, returnOnCapital: 0.185, magicFormulaRank: 2, sector: "Technology", marketCap: 2800000000000 },
-        { symbol: "GOOGL", name: "Alphabet Inc.", price: 166.41, earningsYield: 0.041, returnOnCapital: 0.142, magicFormulaRank: 3, sector: "Technology", marketCap: 2100000000000 },
-        { symbol: "AMZN", name: "Amazon.com Inc.", price: 155.89, earningsYield: 0.028, returnOnCapital: 0.125, magicFormulaRank: 4, sector: "Technology", marketCap: 1600000000000 },
-        { symbol: "META", name: "Meta Platforms Inc.", price: 485.32, earningsYield: 0.065, returnOnCapital: 0.198, magicFormulaRank: 5, sector: "Technology", marketCap: 1200000000000 },
-      ],
-      "Healthcare": [
-        { symbol: "JNJ", name: "Johnson & Johnson", price: 158.42, earningsYield: 0.045, returnOnCapital: 0.128, magicFormulaRank: 1, sector: "Healthcare", marketCap: 425000000000 },
-        { symbol: "PFE", name: "Pfizer Inc.", price: 28.95, earningsYield: 0.089, returnOnCapital: 0.095, magicFormulaRank: 2, sector: "Healthcare", marketCap: 163000000000 },
-        { symbol: "UNH", name: "UnitedHealth Group Inc.", price: 542.78, earningsYield: 0.042, returnOnCapital: 0.156, magicFormulaRank: 3, sector: "Healthcare", marketCap: 515000000000 },
-        { symbol: "ABBV", name: "AbbVie Inc.", price: 175.63, earningsYield: 0.078, returnOnCapital: 0.134, magicFormulaRank: 4, sector: "Healthcare", marketCap: 310000000000 },
-        { symbol: "LLY", name: "Eli Lilly and Company", price: 789.45, earningsYield: 0.038, returnOnCapital: 0.167, magicFormulaRank: 5, sector: "Healthcare", marketCap: 755000000000 },
-      ],
-      "Energy": [
-        { symbol: "XOM", name: "Exxon Mobil Corp.", price: 108.45, earningsYield: 0.072, returnOnCapital: 0.156, magicFormulaRank: 1, sector: "Energy", marketCap: 425000000000 },
-        { symbol: "CVX", name: "Chevron Corp.", price: 159.32, earningsYield: 0.065, returnOnCapital: 0.142, magicFormulaRank: 2, sector: "Energy", marketCap: 315000000000 },
-        { symbol: "COP", name: "ConocoPhillips", price: 112.87, earningsYield: 0.083, returnOnCapital: 0.198, magicFormulaRank: 3, sector: "Energy", marketCap: 145000000000 },
-        { symbol: "SLB", name: "Schlumberger Ltd.", price: 49.23, earningsYield: 0.067, returnOnCapital: 0.134, magicFormulaRank: 4, sector: "Energy", marketCap: 69000000000 },
-        { symbol: "EOG", name: "EOG Resources Inc.", price: 125.67, earningsYield: 0.074, returnOnCapital: 0.178, magicFormulaRank: 5, sector: "Energy", marketCap: 74000000000 },
-      ],
-      "Financial Services": [
-        { symbol: "JPM", name: "JPMorgan Chase & Co.", price: 185.43, earningsYield: 0.087, returnOnCapital: 0.156, magicFormulaRank: 1, sector: "Financial Services", marketCap: 545000000000 },
-        { symbol: "BAC", name: "Bank of America Corp.", price: 32.45, earningsYield: 0.092, returnOnCapital: 0.134, magicFormulaRank: 2, sector: "Financial Services", marketCap: 265000000000 },
-        { symbol: "WFC", name: "Wells Fargo & Company", price: 45.78, earningsYield: 0.078, returnOnCapital: 0.123, magicFormulaRank: 3, sector: "Financial Services", marketCap: 174000000000 },
-        { symbol: "GS", name: "Goldman Sachs Group Inc.", price: 398.65, earningsYield: 0.065, returnOnCapital: 0.145, magicFormulaRank: 4, sector: "Financial Services", marketCap: 134000000000 },
-        { symbol: "MS", name: "Morgan Stanley", price: 89.34, earningsYield: 0.071, returnOnCapital: 0.132, magicFormulaRank: 5, sector: "Financial Services", marketCap: 148000000000 },
-      ],
-      "Consumer Discretionary": [
-        { symbol: "HD", name: "Home Depot Inc.", price: 345.67, earningsYield: 0.052, returnOnCapital: 0.189, magicFormulaRank: 1, sector: "Consumer Discretionary", marketCap: 365000000000 },
-        { symbol: "MCD", name: "McDonald's Corp.", price: 289.45, earningsYield: 0.048, returnOnCapital: 0.167, magicFormulaRank: 2, sector: "Consumer Discretionary", marketCap: 215000000000 },
-        { symbol: "NKE", name: "Nike Inc.", price: 98.76, earningsYield: 0.043, returnOnCapital: 0.134, magicFormulaRank: 3, sector: "Consumer Discretionary", marketCap: 156000000000 },
-        { symbol: "SBUX", name: "Starbucks Corp.", price: 97.23, earningsYield: 0.039, returnOnCapital: 0.123, magicFormulaRank: 4, sector: "Consumer Discretionary", marketCap: 112000000000 },
-        { symbol: "TGT", name: "Target Corp.", price: 148.92, earningsYield: 0.056, returnOnCapital: 0.145, magicFormulaRank: 5, sector: "Consumer Discretionary", marketCap: 68000000000 },
-      ]
+  const getMockResults = (sector: string, amount: number): ScreenerResults => {
+    const mockStocks: Stock[] = [
+      { 
+        symbol: "NVEI", 
+        name: "Nuvei Corporation", 
+        price: 28.45, 
+        earningsYield: 0.125, 
+        returnOnCapital: 0.18, 
+        magicFormulaRank: 1, 
+        overallRank: 15,
+        sector: "Technology", 
+        marketCap: 4200000000,
+        peRatio: 8.0,
+        eps: 3.56,
+        revenue: 850000000,
+        sharesYouCanBuy: Math.floor((amount * 0.2) / 28.45),
+        investmentAllocation: Math.floor((amount * 0.2) / 28.45) * 28.45,
+        country: "CA",
+        exchange: "NASDAQ"
+      },
+      { 
+        symbol: "RICK", 
+        name: "RCI Hospitality Holdings Inc", 
+        price: 45.67, 
+        earningsYield: 0.089, 
+        returnOnCapital: 0.156, 
+        magicFormulaRank: 2, 
+        overallRank: 23,
+        sector: "Consumer Discretionary", 
+        marketCap: 425000000,
+        peRatio: 11.2,
+        eps: 4.08,
+        revenue: 185000000,
+        sharesYouCanBuy: Math.floor((amount * 0.2) / 45.67),
+        investmentAllocation: Math.floor((amount * 0.2) / 45.67) * 45.67,
+        country: "US",
+        exchange: "NASDAQ"
+      },
+      { 
+        symbol: "SPNT", 
+        name: "SiriusPoint Ltd", 
+        price: 12.34, 
+        earningsYield: 0.145, 
+        returnOnCapital: 0.134, 
+        magicFormulaRank: 3, 
+        overallRank: 31,
+        sector: "Financial Services", 
+        marketCap: 890000000,
+        peRatio: 6.9,
+        eps: 1.79,
+        revenue: 2100000000,
+        sharesYouCanBuy: Math.floor((amount * 0.2) / 12.34),
+        investmentAllocation: Math.floor((amount * 0.2) / 12.34) * 12.34,
+        country: "US",
+        exchange: "NYSE"
+      }
+    ];
+
+    return {
+      generalRecommendations: mockStocks,
+      priceOptimizedRecommendations: mockStocks.filter(stock => stock.price < 50),
+      investmentAmount: amount,
+      sector: sector,
+      totalAnalyzed: 50,
+      totalInMarket: 8000
     };
-
-    if (sector === "All Sectors") {
-      // Return a mix from all sectors, taking top stock from each
-      const allStocks = Object.values(mockData).flat();
-      return allStocks.filter((_, index) => index % 5 === 0).slice(0, 5); // Take first from each sector
-    }
-
-    return mockData[sector] || mockData["Technology"];
   };
 
   const getStockWriteup = (stock: Stock) => {
     const writeups: { [key: string]: string } = {
-      "AAPL": "Strong fundamentals with consistent cash flow generation and dominant market position in consumer electronics. High return on capital indicates efficient business operations and excellent management execution.",
-      "MSFT": "Exceptional capital efficiency driven by cloud computing dominance and software subscription model. Strong competitive moats in enterprise software create sustainable competitive advantages.",
-      "GOOGL": "Digital advertising monopoly with high returns on invested capital. Strong free cash flow generation supports long-term value creation and significant market share in search.",
-      "JNJ": "Diversified healthcare giant with stable earnings and strong brand portfolio. Consistent dividend payments and defensive characteristics make it ideal for conservative portfolios.",
-      "PFE": "Undervalued pharmaceutical company with strong pipeline and high earnings yield. Recent market conditions create attractive entry point for value investors.",
-      "XOM": "Energy sector leader with improved capital discipline and strong cash flow generation. Benefits from higher oil prices and efficient operations.",
-      "CVX": "Well-managed oil company with consistent dividend payments and strong balance sheet. Conservative approach to capital allocation creates shareholder value."
+      "NVEI": "Fintech company with strong growth potential and efficient capital allocation. High earnings yield suggests market undervaluation.",
+      "RICK": "Unique hospitality business with consistent cash flow generation and strong return metrics. Defensive business model with recurring revenue.",
+      "SPNT": "Specialty insurance company with attractive valuations and solid fundamentals. Strong balance sheet and experienced management team."
     };
     
     return writeups[stock.symbol] || `Strong Magic Formula candidate with attractive earnings yield of ${(stock.earningsYield * 100).toFixed(1)}% and solid return on capital of ${(stock.returnOnCapital * 100).toFixed(1)}%. The combination of these metrics suggests an undervalued, quality business with efficient management.`;
@@ -163,6 +193,117 @@ export const MagicFormulaScreener = ({ onBack }: MagicFormulaScreenerProps) => {
     if (marketCap >= 1e6) return `$${(marketCap / 1e6).toFixed(1)}M`;
     return `$${marketCap.toFixed(0)}`;
   };
+
+  const renderStockCard = (stock: Stock, index: number, isOptimized: boolean = false) => (
+    <Card key={stock.symbol} className="border-white/10 bg-background/50 backdrop-blur-sm hover:border-primary/20 transition-colors">
+      <CardContent className="p-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Stock Info */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                <span className="text-primary font-bold">#{index + 1}</span>
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <h3 className="font-semibold text-xl">{stock.symbol}</h3>
+                  <Badge variant="outline" className="text-xs">
+                    Overall Rank: #{stock.overallRank}
+                  </Badge>
+                </div>
+                <p className="text-muted-foreground">{stock.name}</p>
+                <p className="text-sm text-muted-foreground">
+                  {stock.exchange} • {stock.country} • {formatMarketCap(stock.marketCap)}
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+              <div>
+                <p className="text-2xl font-bold">{formatCurrency(stock.price)}</p>
+                <p className="text-xs text-muted-foreground">Current Price</p>
+              </div>
+              <div>
+                <p className="text-lg font-semibold text-primary">{(stock.earningsYield * 100).toFixed(1)}%</p>
+                <p className="text-xs text-muted-foreground">Earnings Yield</p>
+              </div>
+              <div>
+                <p className="text-lg font-semibold text-primary">{(stock.returnOnCapital * 100).toFixed(1)}%</p>
+                <p className="text-xs text-muted-foreground">Return on Capital</p>
+              </div>
+              <div>
+                <p className="text-lg font-semibold text-blue-400">{stock.peRatio ? stock.peRatio.toFixed(1) : 'N/A'}</p>
+                <p className="text-xs text-muted-foreground">P/E Ratio</p>
+              </div>
+            </div>
+            
+            {/* Investment Allocation */}
+            <div className="mt-4 p-3 bg-muted/50 rounded-lg">
+              <h5 className="text-sm font-medium mb-2">Your Investment Allocation</h5>
+              <div className="grid grid-cols-3 gap-3 text-sm">
+                <div className="text-center">
+                  <p className="font-semibold text-green-400">{stock.sharesYouCanBuy}</p>
+                  <p className="text-xs text-muted-foreground">Shares You Can Buy</p>
+                </div>
+                <div className="text-center">
+                  <p className="font-semibold text-green-400">{formatCurrency(stock.investmentAllocation)}</p>
+                  <p className="text-xs text-muted-foreground">Allocation Amount</p>
+                </div>
+                <div className="text-center">
+                  <p className="font-semibold text-green-400">{((stock.investmentAllocation / investmentAmount) * 100).toFixed(1)}%</p>
+                  <p className="text-xs text-muted-foreground">Portfolio Weight</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Additional Financial Metrics */}
+            {(stock.eps || stock.revenue) && (
+              <div className="mt-4 p-3 bg-muted/50 rounded-lg">
+                <h5 className="text-sm font-medium mb-2">Key Financials</h5>
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  {stock.eps && (
+                    <div className="text-center">
+                      <p className="font-semibold">${stock.eps.toFixed(2)}</p>
+                      <p className="text-xs text-muted-foreground">EPS</p>
+                    </div>
+                  )}
+                  {stock.revenue && (
+                    <div className="text-center">
+                      <p className="font-semibold">{formatMarketCap(stock.revenue)}</p>
+                      <p className="text-xs text-muted-foreground">Revenue</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Investment Thesis */}
+          <div className="space-y-3">
+            <h4 className="font-semibold text-lg">
+              {isOptimized ? "Price-Optimized Pick" : "Why Invest?"}
+            </h4>
+            <p className="text-muted-foreground leading-relaxed">
+              {getStockWriteup(stock)}
+            </p>
+            <div className="flex items-center gap-2 flex-wrap">
+              <Badge variant="outline" className="text-xs">
+                Magic Formula Rank: #{stock.magicFormulaRank}
+              </Badge>
+              <Badge variant="outline" className="text-xs">
+                {stock.sector}
+              </Badge>
+              {isOptimized && (
+                <Badge className="text-xs bg-green-100 text-green-800">
+                  Optimal for ${formatCurrency(investmentAmount).replace('$', '').replace('.00', '')} Budget
+                </Badge>
+              )}
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
 
   return (
     <div className="min-h-screen bg-background">
@@ -186,7 +327,7 @@ export const MagicFormulaScreener = ({ onBack }: MagicFormulaScreenerProps) => {
               <span className="text-gradient font-medium">Stock Screener</span>
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto mt-4">
-              Discover high-quality, undervalued stocks using Joel Greenblatt's proven Magic Formula strategy
+              Discover undervalued stocks across ALL publicly traded companies with investment amount optimization
             </p>
           </div>
 
@@ -198,7 +339,22 @@ export const MagicFormulaScreener = ({ onBack }: MagicFormulaScreenerProps) => {
               Screening Parameters
             </CardTitle>
           </CardHeader>
-          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="space-y-2">
+              <Label htmlFor="investment-amount">Intended Investment Amount</Label>
+              <div className="relative">
+                <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                <Input
+                  id="investment-amount"
+                  type="number"
+                  value={investmentAmount}
+                  onChange={(e) => setInvestmentAmount(Number(e.target.value))}
+                  placeholder="15000"
+                  className="pl-10"
+                />
+              </div>
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="sector">Sector</Label>
               <Select value={selectedSector} onValueChange={setSelectedSector}>
@@ -229,100 +385,41 @@ export const MagicFormulaScreener = ({ onBack }: MagicFormulaScreenerProps) => {
         </Card>
 
         {/* Results */}
-        {stocks.length > 0 && (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-semibold">Top Magic Formula Recommendations</h2>
-              <Badge variant="secondary" className="px-3 py-1">
-                {stocks.length} stocks found in {selectedSector}
-              </Badge>
+        {results && (
+          <div className="space-y-8">
+            {/* General Recommendations */}
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-semibold">Top Magic Formula Rankings</h2>
+                <Badge variant="secondary" className="px-3 py-1">
+                  {results.generalRecommendations.length} stocks • {results.sector}
+                </Badge>
+              </div>
+
+              <div className="grid gap-6">
+                {results.generalRecommendations.slice(0, 10).map((stock, index) => 
+                  renderStockCard(stock, index, false)
+                )}
+              </div>
             </div>
 
-            <div className="grid gap-6">
-              {stocks.slice(0, 5).map((stock, index) => (
-                <Card key={stock.symbol} className="border-white/10 bg-background/50 backdrop-blur-sm hover:border-primary/20 transition-colors">
-                  <CardContent className="p-6">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                      {/* Stock Info */}
-                      <div className="space-y-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                            <span className="text-primary font-bold">#{index + 1}</span>
-                          </div>
-                          <div>
-                            <h3 className="font-semibold text-xl">{stock.symbol}</h3>
-                            <p className="text-muted-foreground">{stock.name}</p>
-                            <p className="text-sm text-muted-foreground">Market Cap: {formatMarketCap(stock.marketCap)}</p>
-                          </div>
-                        </div>
+            {/* Price-Optimized Recommendations */}
+            {results.priceOptimizedRecommendations.length > 0 && (
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-2xl font-semibold">Price-Optimized for Your Budget</h2>
+                  <Badge variant="secondary" className="px-3 py-1 bg-green-100 text-green-800">
+                    {results.priceOptimizedRecommendations.length} optimal picks
+                  </Badge>
+                </div>
 
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                          <div>
-                            <p className="text-2xl font-bold">{formatCurrency(stock.price)}</p>
-                            <p className="text-xs text-muted-foreground">Current Price</p>
-                          </div>
-                          <div>
-                            <p className="text-lg font-semibold text-primary">{(stock.earningsYield * 100).toFixed(1)}%</p>
-                            <p className="text-xs text-muted-foreground">Earnings Yield</p>
-                          </div>
-                          <div>
-                            <p className="text-lg font-semibold text-primary">{(stock.returnOnCapital * 100).toFixed(1)}%</p>
-                            <p className="text-xs text-muted-foreground">Return on Capital</p>
-                          </div>
-                          <div>
-                            <p className="text-lg font-semibold text-blue-400">{stock.peRatio ? stock.peRatio.toFixed(1) : 'N/A'}</p>
-                            <p className="text-xs text-muted-foreground">P/E Ratio</p>
-                          </div>
-                        </div>
-                        
-                        {/* Additional Financial Metrics */}
-                        {(stock.eps || stock.revenue || stock.bookValue) && (
-                          <div className="mt-4 p-3 bg-muted/50 rounded-lg">
-                            <h5 className="text-sm font-medium mb-2">Key Financials</h5>
-                            <div className="grid grid-cols-3 gap-3 text-sm">
-                              {stock.eps && (
-                                <div className="text-center">
-                                  <p className="font-semibold">${stock.eps.toFixed(2)}</p>
-                                  <p className="text-xs text-muted-foreground">EPS</p>
-                                </div>
-                              )}
-                              {stock.bookValue && (
-                                <div className="text-center">
-                                  <p className="font-semibold">${stock.bookValue.toFixed(2)}</p>
-                                  <p className="text-xs text-muted-foreground">Book Value</p>
-                                </div>
-                              )}
-                              {stock.revenue && (
-                                <div className="text-center">
-                                  <p className="font-semibold">{formatMarketCap(stock.revenue)}</p>
-                                  <p className="text-xs text-muted-foreground">Revenue</p>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Investment Thesis */}
-                      <div className="space-y-3">
-                        <h4 className="font-semibold text-lg">Why Invest?</h4>
-                        <p className="text-muted-foreground leading-relaxed">
-                          {getStockWriteup(stock)}
-                        </p>
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline" className="text-xs">
-                            Magic Formula Rank: #{stock.magicFormulaRank}
-                          </Badge>
-                          <Badge variant="outline" className="text-xs">
-                            {stock.sector}
-                          </Badge>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                <div className="grid gap-6">
+                  {results.priceOptimizedRecommendations.slice(0, 8).map((stock, index) => 
+                    renderStockCard(stock, index, true)
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* Summary Stats */}
             <Card className="border-primary/20 bg-primary/5 backdrop-blur-sm">
@@ -333,18 +430,25 @@ export const MagicFormulaScreener = ({ onBack }: MagicFormulaScreenerProps) => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-center">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
                   <div>
-                    <p className="text-2xl font-bold">{stocks.length}</p>
-                    <p className="text-sm text-muted-foreground">Stocks Found</p>
+                    <p className="text-2xl font-bold">{results.totalAnalyzed}</p>
+                    <p className="text-sm text-muted-foreground">Stocks Analyzed</p>
                   </div>
                   <div>
-                    <p className="text-2xl font-bold">{selectedSector}</p>
-                    <p className="text-sm text-muted-foreground">Target Sector</p>
+                    <p className="text-2xl font-bold">{formatMarketCap(results.totalInMarket)}</p>
+                    <p className="text-sm text-muted-foreground">Total Market Stocks</p>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold">{formatCurrency(results.investmentAmount)}</p>
+                    <p className="text-sm text-muted-foreground">Investment Budget</p>
                   </div>
                   <div>
                     <p className="text-2xl font-bold text-green-400">
-                      {stocks.length > 0 ? (stocks.reduce((sum, stock) => sum + stock.earningsYield, 0) / stocks.length * 100).toFixed(1) + '%' : '0%'}
+                      {results.generalRecommendations.length > 0 ? 
+                        (results.generalRecommendations.reduce((sum, stock) => sum + stock.earningsYield, 0) / results.generalRecommendations.length * 100).toFixed(1) + '%' : 
+                        '0%'
+                      }
                     </p>
                     <p className="text-sm text-muted-foreground">Avg Earnings Yield</p>
                   </div>
