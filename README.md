@@ -1,69 +1,42 @@
-# Welcome to your Lovable project
+# Personal Finance App (Under Progress)
 
-## Project info
+A personal finance web application inspired by Joel Greenblatt’s *The Little Book That Beats the Market*.  
+The app implements the Magic Formula investment strategy, ranking stocks based on earnings yield and return on capital, while expanding into features for usability and automation.
 
-**URL**: https://lovable.dev/projects/92dc0c12-c831-4ed8-9ab7-0f875920f45d
+---
 
-## How can I edit this code?
+## About the Project
+This project is a work-in-progress tool designed to make value investing strategies more accessible.  
+What started as a simple stock-ranking engine has grown into a broader project exploring:
 
-There are several ways of editing your application.
+- Backtesting strategies on historical financial data  
+- News feed integration to overlay market sentiment  
+- AI-driven assistant to generate automated investment insights  
+- Clean and intuitive UI with React, TypeScript, and Tailwind  
 
-**Use Lovable**
+---
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/92dc0c12-c831-4ed8-9ab7-0f875920f45d) and start prompting.
+## Tech Stack
+- React (with Vite for fast builds)  
+- TypeScript  
+- Tailwind CSS and shadcn/ui (UI components)  
 
-Changes made via Lovable will be committed automatically to this repo.
+---
 
-**Use your preferred IDE**
+## Getting Started
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### Prerequisites
+Make sure you have Node.js and npm installed.  
+(Using [nvm](https://github.com/nvm-sh/nvm) is recommended to manage versions.)
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
+### Installation
+```bash
+# Clone the repository
 git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
 cd <YOUR_PROJECT_NAME>
 
-# Step 3: Install the necessary dependencies.
-npm i
+# Install dependencies
+npm install
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Start the development server
 npm run dev
-```
-
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with .
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/92dc0c12-c831-4ed8-9ab7-0f875920f45d) and click on Share -> Publish.
-
-## I want to use a custom domain - is that possible?
-
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
